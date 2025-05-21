@@ -1,0 +1,77 @@
+#pragma once
+
+class Window {
+ public:
+  WINDOW* m_window = nullptr;
+  int m_width = -1;
+  int m_height = 0;
+  int m_curYpos = 0;
+  int m_posx = 0;
+  int m_posy = 0;
+
+  
+string replaceAll(string str, const string &from, const string &to)
+{
+    size_t start_pos = 0;
+    while ((start_pos = str.find(from, start_pos)) != string::npos)
+    {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+    return str;
+}
+
+std::vector<std::string> loadFile(std::string fn) {
+  ifstream in(fn);
+  std::vector<std::string> ret;
+  std::string s;
+// Use a while loop together with the getline() function to read the file line by line
+  while (getline (in, s)) {
+  // Output the text from the file
+    ret.push_back(s);
+  }
+  in.close();
+  return ret;
+}
+
+uint8_t getColorType(std::string s) {
+  s = replaceAll(s, "*","");
+  s = replaceAll(s, "#","");
+  s = replaceAll(s, "[]","");
+  if (std::find(keywords.begin(), keywords.end(), s) != keywords.end()) {
+    return 1;
+  }
+  if (std::find(types.begin(), types.end(), s) != types.end()) {
+    return 2;
+  }
+
+  return 3;
+}
+
+
+void printLine(std::string f) {
+  std::string s;
+  auto is = istringstream(f);
+  while (getline(is, s, ' ')) {
+    attron(COLOR_PAIR(getColorType(s)));
+    printw(s.c_str());
+    printw(" ");
+  }
+}
+
+void printFile(std::vector<std::string>& f) {
+  int x = 0;
+  int y = 0;
+  int posy = curYpos;
+  while (y<height && posy<f.size()) {
+    //mvprintw(y,x,("\033[0;32m"+f[posy]).c_str());
+    move(y,x);
+    printLine(f[posy]);
+    posy++;
+    y++;
+  }
+}
+
+ 
+
+};
