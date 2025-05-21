@@ -25,11 +25,8 @@
    ifstream in(fn);
    std::vector<std::string> ret;
    std::string s;
- // Use a while loop together with the getline() function to read the file line by line
-   while (getline (in, s)) {
-   // Output the text from the file
+   while (getline (in, s)) 
      ret.push_back(s);
-   }
    in.close();
    m_contents = ret;
  }

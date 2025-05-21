@@ -24,7 +24,7 @@ void initColorValues() {
   init_color(COLOR_WHITE, 500, 500, 600);
 }
 
-void moveCursor(Window* w) {
+bool moveCursor(Window* w) {
   w->printCursor();
   // refreshes the screen
   int pposx = w->m_posx;
@@ -38,17 +38,19 @@ void moveCursor(Window* w) {
     if (v == 'C') w->m_posx++;
     if (v == 'D') w->m_posx--;
     if (v == 27) isDone = true;
-  }
-  if (w->m_posy==w->m_height) {
-    w->m_posy -=1;
-    w->m_curYpos++;
-    doRefresh = true;
-  }
-  if (w->m_posy<0) {
-    w->m_posy +=1;
-    if (w->m_curYpos!=0)
-      w->m_curYpos--;
-    doRefresh = true;
+  
+    if (w->m_posy==w->m_height) {
+      w->m_posy -=1;
+      w->m_curYpos++;
+      doRefresh = true;
+    
+    }
+    if (w->m_posy<0) {
+      w->m_posy +=1;
+      if (w->m_curYpos!=0)
+	w->m_curYpos--;
+      doRefresh = true;
+    }
   }
 
 }
