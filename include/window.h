@@ -23,22 +23,22 @@ class Window {
   std::vector<string> m_contents;
 
   
- void init(WINDOW* w) {
-   m_window = w;
-   getmaxyx(stdscr,m_height,m_width);
-
+  void init(WINDOW* w) {
+    m_window = w;
+    getmaxyx(stdscr,m_height,m_width);
+    
   }
 
- uint8_t getColorType(std::string s);
+  uint8_t getColorType(std::string s);
   
- string replaceAll(string str, const string &from, const string &to);
+  string replaceAll(string str, const string &from, const string &to);
 
- void loadFile(std::string fn);
+  void loadFile(std::string fn);
 
- void printLine(std::string f);
+  void printLine(std::string f);
 
- void printFile();
+  void printFile();
 
- 
+  void printCursor();
 
 };
