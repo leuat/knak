@@ -1,13 +1,17 @@
 #include "window.h"
 
 void Window::printCursor() {
-   
+
+  if (m_type!=Editor)
+    return;
+  
   wmove(m_window, m_posy, m_posx);
-  attron(COLOR_PAIR(4));
+  wattron(m_window,COLOR_PAIR(4));
   char c = ' ';
   if (m_curYpos + m_posy<m_contents.size() && m_posx<m_contents[m_curYpos+m_posy].size())
     c = m_contents[m_curYpos+m_posy][m_posx];
-  printw("",c);
+  
+  wprintw(m_window,"%c",c);
 }
 
 
@@ -63,13 +67,15 @@ void Window::printLine(std::string f) {
 }
 
 void Window::printFile() {
-  int x = 0;
-  int y = 0;
+  werase(m_window);
+  int x = m_hasBorders;
+  int y = m_hasBorders;
   int posy = m_curYpos;
   auto f = m_contents;
-  while (y<m_height && posy<f.size()) {
+  while (y<m_height-m_hasBorders && posy<f.size()) {
     wmove(m_window,y,x);
     printLine(f[posy]);
+    //    printf(f[posy].c_str());
     posy++;
     y++;
   }
@@ -77,7 +83,9 @@ void Window::printFile() {
 
 void Window::print() {
   if (m_type == Editor) printFile();
-  
-  for (auto& c : m_children)
+  if (m_type == Linenumbers) printFile();
+      
+  for (auto& c : m_children) {
     c->print();
+  }
 }

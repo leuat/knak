@@ -1,4 +1,3 @@
-
 #include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +11,7 @@
 using namespace std;
 
 Window mainWindow;
-shared_ptr<Window> curWindow = nullptr;
+shared_ptr<Window> curWindow = nullptr, lineWindow = nullptr;
 bool isDone = false;
 bool doRefresh = true;
 
@@ -39,13 +38,13 @@ int moveCursor(Window* w) {
     if (v == 'D') w->m_posx--;
     if (v == 27) isDone = true;
   
-    if (w->m_posy==w->m_height) {
+    if (w->m_posy==w->m_height-w->m_hasBorders) {
       w->m_posy -=1;
       w->m_curYpos++;
       doRefresh = true;
     
     }
-    if (w->m_posy<0) {
+    if (w->m_posy<w->m_hasBorders) {
       w->m_posy +=1;
       if (w->m_curYpos!=0)
 	w->m_curYpos--;
@@ -69,8 +68,12 @@ void initColors() {
 void init() {
   initscr();
   mainWindow.Init(stdscr, Window::Empty);
-  curWindow = mainWindow.addChild(Window::Editor, 0.1, 0.1, 0.8, 0.8);
-
+  auto mainw = mainWindow.addChild(Window::Empty, 0.1, 0.1, 0.9, 0.8);
+  mainw->m_hasBorders = true;
+  
+  lineWindow = mainw->addChild(Window::Linenumbers, 0.0, 0.0, 0.1, 1.0);
+  curWindow = mainw->addChild(Window::Editor, 0.1, 0.0, 0.9, 1.0);
+  
   if (has_colors() == FALSE) {
     endwin();
     printf("Your terminal does not support color\n");
@@ -78,19 +81,21 @@ void init() {
   }
   initColors();
   noecho();
+  curs_set(0);
+    
 
 }
 
 int main(int argc, char ** argv)
 {
-  curs_set(0);
   init();
   curWindow->loadFile(argv[1]);
   
   while (!isDone) {
+    
     if (true) {
-      clear();
-      curWindow->printFile();
+      lineWindow->fillLines(curWindow->m_curYpos);
+      mainWindow.print();
       doRefresh = false;
     }
     curWindow->printCursor();

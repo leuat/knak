@@ -21,6 +21,7 @@ class Window {
   int m_posx = 0;
   int m_posy = 0;
   std::vector<string> m_contents;
+  bool m_hasBorders = false;
 
   std::vector<shared_ptr<Window>> m_children;
   Window* m_parent = nullptr;
@@ -29,16 +30,28 @@ class Window {
     Editor,
     Filelist,
     TopInfo,
+    Linenumbers,
     Empty
+    
   };
 
   WindowType m_type = Empty;
+
+
+  void fillLines(int start) {
+    m_contents.clear();
+    for (int i=0;i<m_height;i++) {
+      std::string s = "  " + std::to_string(i+start) + ":";
+      m_contents.push_back(s);
+    }
+  }
   
   void Init(WINDOW* w, WindowType type) {
     m_window = w;
     getmaxyx(m_window,m_height,m_width);
     printf("%i %i \n",m_width, m_height);
     m_type = type;
+
     
   }
 
@@ -48,7 +61,7 @@ class Window {
     int sx = px*m_width;
     int sy = py*m_height;
 
-    WINDOW* nw = newwin(h,w,sy,sx);
+    WINDOW* nw = derwin(m_window,h,w,sy,sx);
     shared_ptr<Window> win = make_shared<Window>();
     win->Init(nw, type);
     win->m_parent = this;
@@ -71,6 +84,9 @@ class Window {
   void printCursor();
 
   void refresh() {
+    wbkgd(m_window, COLOR_PAIR(1));
+    if (m_hasBorders)
+      box(m_window,0,0);
     wrefresh(m_window);
     for (auto& c: m_children) {
       c->refresh();
