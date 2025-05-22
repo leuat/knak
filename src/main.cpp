@@ -24,8 +24,7 @@ void initColorValues() {
   init_color(COLOR_WHITE, 500, 500, 600);
 }
 
-bool moveCursor(Window* w) {
-  w->printCursor();
+int moveCursor(Window* w) {
   // refreshes the screen
   int pposx = w->m_posx;
   int pposy = w->m_posy;
@@ -51,7 +50,9 @@ bool moveCursor(Window* w) {
 	w->m_curYpos--;
       doRefresh = true;
     }
+    return -1;
   }
+  return v;
 
 }
 
@@ -74,8 +75,8 @@ void init() {
     printf("Your terminal does not support color\n");
     exit(1);
   }
-  noecho();
   initColors();
+  noecho();
 
 }
 
@@ -86,14 +87,17 @@ int main(int argc, char ** argv)
   curs_set(0);
   init();
   mainWindow.loadFile(argv[1]);
+  
   while (!isDone) {
-    if (refresh) {
+    if (true) {
       clear();
       curWindow->printFile();
       doRefresh = false;
     }
+    curWindow->printCursor();
     refresh();
-    moveCursor(curWindow);
+    
+    auto key = moveCursor(curWindow);
   }
   endwin();
   return 0;

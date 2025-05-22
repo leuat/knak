@@ -1,12 +1,13 @@
  #include "window.h"
 
  void Window::printCursor() {
+   
    move(m_posy,m_posx);
    attron(COLOR_PAIR(4));
    char c = ' ';
-   if (m_posx<m_contents[m_curYpos+m_posy].size())
+   if (m_curYpos + m_posy<m_contents.size() && m_posx<m_contents[m_curYpos+m_posy].size())
      c = m_contents[m_curYpos+m_posy][m_posx];
-   printw("%c",c);
+   printw("",c);
  }
 
 
@@ -22,11 +23,14 @@
  }
 
  void Window::loadFile(std::string fn) {
+   if (!std::filesystem::exists(fn))
+     Data::Error("File does not exist: "+fn);
    ifstream in(fn);
    std::vector<std::string> ret;
    std::string s;
    while (getline (in, s)) 
      ret.push_back(s);
+   
    in.close();
    m_contents = ret;
  }
@@ -62,7 +66,6 @@
    int posy = m_curYpos;
    auto f = m_contents;
    while (y<m_height && posy<f.size()) {
-     //mvprintw(y,x,("\033[0;32m"+f[posy]).c_str());
      move(y,x);
      printLine(f[posy]);
      posy++;
