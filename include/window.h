@@ -22,11 +22,38 @@ class Window {
   int m_posy = 0;
   std::vector<string> m_contents;
 
+  std::vector<shared_ptr<Window>> m_children;
+  Window* m_parent = nullptr;
+
+  enum WindowType {
+    Editor,
+    Filelist,
+    TopInfo,
+    Empty
+  };
+
+  WindowType m_type = Empty;
   
-  void init(WINDOW* w) {
+  void Init(WINDOW* w, WindowType type) {
     m_window = w;
-    getmaxyx(stdscr,m_height,m_width);
+    getmaxyx(m_window,m_height,m_width);
+    printf("%i %i \n",m_width, m_height);
+    m_type = type;
     
+  }
+
+  shared_ptr<Window> addChild(WindowType type, float px, float py, float pw, float ph) {
+    int h = ph*m_height;
+    int w = pw*m_width;
+    int sx = px*m_width;
+    int sy = py*m_height;
+
+    WINDOW* nw = newwin(h,w,sy,sx);
+    shared_ptr<Window> win = make_shared<Window>();
+    win->Init(nw, type);
+    win->m_parent = this;
+    m_children.push_back(win);
+    return win;
   }
 
   uint8_t getColorType(std::string s);
@@ -39,6 +66,15 @@ class Window {
 
   void printFile();
 
+  void print();
+
   void printCursor();
+
+  void refresh() {
+    wrefresh(m_window);
+    for (auto& c: m_children) {
+      c->refresh();
+    }
+  }
 
 };

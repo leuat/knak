@@ -11,7 +11,8 @@
 
 using namespace std;
 
-Window mainWindow, *curWindow = nullptr;
+Window mainWindow;
+shared_ptr<Window> curWindow = nullptr;
 bool isDone = false;
 bool doRefresh = true;
 
@@ -67,8 +68,8 @@ void initColors() {
 
 void init() {
   initscr();
-  mainWindow.init(stdscr);    
-  curWindow = &mainWindow;
+  mainWindow.Init(stdscr, Window::Empty);
+  curWindow = mainWindow.addChild(Window::Editor, 0.1, 0.1, 0.8, 0.8);
 
   if (has_colors() == FALSE) {
     endwin();
@@ -82,11 +83,9 @@ void init() {
 
 int main(int argc, char ** argv)
 {
-  // init screen and sets up screen
-  //mvprintw(height-1,width-20,"Hello World");
   curs_set(0);
   init();
-  mainWindow.loadFile(argv[1]);
+  curWindow->loadFile(argv[1]);
   
   while (!isDone) {
     if (true) {
@@ -95,9 +94,10 @@ int main(int argc, char ** argv)
       doRefresh = false;
     }
     curWindow->printCursor();
-    refresh();
+    //    refresh();
+    mainWindow.refresh();
     
-    auto key = moveCursor(curWindow);
+    auto key = moveCursor(curWindow.get());
   }
   endwin();
   return 0;
