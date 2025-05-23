@@ -10,6 +10,7 @@
 #include <vector>
 #include <algorithm>
 
+
 using namespace std;
 
 class Window {
@@ -35,8 +36,39 @@ class Window {
     
   };
 
+  void key(int k) {
+    if (m_curYpos + m_posy>=m_contents.size())
+      return;
+    m_contents[m_curYpos + m_posy].insert(m_posx,(char*)&k);
+    m_posx++;
+    
+  }
+
   WindowType m_type = Empty;
 
+  void constrainCursor() {
+    if (m_posy==m_height-m_hasBorders) {
+      m_posy -=1;
+      m_curYpos++;
+    
+    }
+    if (m_posy<m_hasBorders) {
+      m_posy +=1;
+      if (m_curYpos!=0)
+	m_curYpos--;
+    }
+    if (m_posx<m_hasBorders) {
+      m_posx +=1;
+    }
+    int mmax = m_width;
+    if (m_curYpos + m_posy <m_contents.size()) {
+      mmax = m_contents[m_curYpos + m_posy].size();                                    
+    }
+    if (m_posx>=m_width ||  m_posx>mmax) {
+      m_posx =mmax;
+    }
+
+  }
 
   void fillLines(int start) {
     m_contents.clear();

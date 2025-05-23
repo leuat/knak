@@ -14,6 +14,7 @@ Window mainWindow;
 shared_ptr<Window> curWindow = nullptr, lineWindow = nullptr;
 bool isDone = false;
 bool doRefresh = true;
+#define ctrl(x)           ((x) & 0x1f)
 
 
 void initColorValues() {
@@ -28,7 +29,13 @@ int moveCursor(Window* w) {
   // refreshes the screen
   int pposx = w->m_posx;
   int pposy = w->m_posy;
-  int v = getch();
+  //nonl();
+  cbreak();
+  raw();
+  //    keypad(stdscr, TRUE);
+    int v = getch();
+  if (v==ctrl('s'))
+    exit(1);
   if (v==27) {
     v = getch();
     v = getch();
@@ -37,21 +44,11 @@ int moveCursor(Window* w) {
     if (v == 'C') w->m_posx++;
     if (v == 'D') w->m_posx--;
     if (v == 27) isDone = true;
-  
-    if (w->m_posy==w->m_height-w->m_hasBorders) {
-      w->m_posy -=1;
-      w->m_curYpos++;
-      doRefresh = true;
-    
-    }
-    if (w->m_posy<w->m_hasBorders) {
-      w->m_posy +=1;
-      if (w->m_curYpos!=0)
-	w->m_curYpos--;
-      doRefresh = true;
-    }
+    curWindow->constrainCursor();
     return -1;
   }
+  curWindow->key(v);
+  
   return v;
 
 }
