@@ -2,26 +2,24 @@
 #include <filesystem>
 
 void Window::printCursor() {
-
-
-  
   if (m_type!=Editor && m_type!=FileList)
     return;
   wattron(m_window,COLOR_PAIR(Data::COLOR_CURSOR));
-
+  int posy = getYpos();
   if (m_type==FileList) {
     // display entire line
-    wmove(m_window, m_posy+m_hasBorders, m_hasBorders);
-    if (m_posy + m_curYpos<m_contents.size())
-      wprintw(m_window,m_contents[m_posy + m_curYpos].c_str());
+    wmove(m_window, m_posy, hasBorders());
+    if (posy<m_contents.size())
+      wprintw(m_window,m_contents[posy].c_str());
+    
     wattron(m_window,COLOR_PAIR(Data::COLOR_TEXT));
     return;
   }
   
-  wmove(m_window, m_posy, m_posx);
+  wmove(m_window, m_posy, m_posx+hasBorders());
   char c = ' ';
-  if (m_curYpos + m_posy<m_contents.size() && m_posx<m_contents[m_curYpos+m_posy].size())
-    c = m_contents[m_curYpos+m_posy][m_posx];
+  if (posy<m_contents.size() && m_posx<m_contents[posy].size())
+    c = m_contents[posy][m_posx];
   
   wprintw(m_window,"%c",c);
   wattron(m_window,COLOR_PAIR(Data::COLOR_TEXT));
@@ -30,13 +28,17 @@ void Window::printCursor() {
 
 void Window::loadDir(std::string dn) {
   m_contents.clear();
+  m_contents.push_back("../");
   for (const auto & entry : std::filesystem::directory_iterator(dn)) {
     auto s = entry.path();
-    s = Util::replaceAll(s,"./","");
+    //    s = Util::replaceAll(s,"./","");
     m_contents.push_back(s);
   }
-  
+  m_currentFile = dn;
+  m_posy = 0;
+  m_curYpos = 0;
 }
+
 
 void Window::loadFile(std::string fn) {
   if (!std::filesystem::exists(fn))
@@ -49,6 +51,10 @@ void Window::loadFile(std::string fn) {
    
   in.close();
   m_contents = ret;
+  m_posx = 0;
+  m_posy = 0;
+  m_curYpos = 0;
+  m_currentFile = fn;
 }
 
 
@@ -80,44 +86,42 @@ shared_ptr<Window> Window::addChild(WindowType type, float px, float py, float p
 
 
 void Window::constrainCursor() {
-  if (m_posy==m_height-m_hasBorders) {
+  if (m_posy==m_height-hasBorders()) {
     m_posy -=1;
     m_curYpos++;
     
   }
-  if (m_posy<m_hasBorders) {
+  if (m_posy<hasBorders()) {
     m_posy +=1;
     if (m_curYpos!=0)
       m_curYpos--;
   }
-  if (m_posx<m_hasBorders) {
+  if (m_posx<0) {
     m_posx +=1;
   }
-  int mmax = m_width;
-  if (m_curYpos + m_posy <m_contents.size()) {
-    mmax = m_contents[m_curYpos + m_posy].size();                                    
-  }
-  if (m_posx>=m_width ||  m_posx>mmax) {
-    m_posx =mmax;
+  int mmax = getCurrentLine().size();
+  if (m_posx>=m_width || m_posx>mmax) {
+    m_posx = mmax;
   }
 }
 
 
 void Window::key(int k) {
-    if (m_type==FileList)
+  if (m_type==FileList)
     return;
-  if (m_curYpos + m_posy>=m_contents.size())
+  
+  if (getYpos()>=m_contents.size())
     return;
   if (k==127) { // backspace
     if (m_posx<=0)
       return;
-    m_contents[m_curYpos + m_posy].erase(m_posx-1,1);
+    m_contents[getYpos()].erase(m_posx-1,1);
     m_posx--;
     return;
     
   }
   
-  m_contents[m_curYpos + m_posy].insert(m_posx,(char*)&k);
+  m_contents[getYpos()].insert(m_posx,(char*)&k);
   m_posx++;
   
 }
@@ -140,7 +144,10 @@ uint8_t Window::getColorType(std::string s) {
 
 void Window::printLine(std::string f) {
   if (m_type==FileList) {
-    wattron(m_window,COLOR_PAIR(Data::COLOR_TEXT));
+    if (Util::isDirectory(f))
+      wattron(m_window,COLOR_PAIR(Data::COLOR_KEYWORD));
+    else
+      wattron(m_window,COLOR_PAIR(Data::COLOR_TEXT));
     wprintw(m_window, f.c_str());
     return;
   }
@@ -156,14 +163,14 @@ void Window::printLine(std::string f) {
 
 void Window::printFile() {
   werase(m_window);
-  int x = m_hasBorders;
-  int y = m_hasBorders;
+  int x = hasBorders();
+  int y = hasBorders();
   int posy = m_curYpos;
   auto f = m_contents;
-  while (y<m_height-m_hasBorders && posy<f.size()) {
+  while (y<m_height-hasBorders() && posy<f.size()) {
     wmove(m_window,y,x);
-    printLine(f[posy]);
-    //    printf(f[posy].c_str());
+    if (posy>=0 && posy<f.size())
+      printLine(f[posy]);
     posy++;
     y++;
   }

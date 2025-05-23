@@ -36,7 +36,18 @@ int moveCursor(Window* w) {
     int v = getch();
   if (v==ctrl('s'))
     exit(1);
+   
+  if (v==10) { // enter
+	       // Load file
+    if (curWindow->m_type==Window::FileList) {
+      if (Util::isDirectory(fileWindow->getCurrentLine()))
+	fileWindow->loadDir(fileWindow->getCurrentLine());
+      else
+	editorWindow->loadFile(fileWindow->getCurrentLine());
+      return -1;
+    }
 
+  }
   
   if (v==27) {
     v = getch();
@@ -72,6 +83,8 @@ void initColors() {
   init_pair(Data::COLOR_CURSOR, COLOR_BLACK, COLOR_RED);
   init_pair(Data::COLOR_SYMBOL, COLOR_GREEN, COLOR_BLACK);
 }
+
+
 
 void init() {
   initscr();

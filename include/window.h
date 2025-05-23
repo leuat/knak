@@ -10,6 +10,7 @@
 #include <vector>
 #include <algorithm>
 #include "util.h"
+#include <filesystem>
 
 using namespace std;
 
@@ -26,6 +27,8 @@ class Window {
 
   std::vector<shared_ptr<Window>> m_children;
   Window* m_parent = nullptr;
+
+  std::string m_currentFile = "";
 
   enum WindowType {
     Editor,
@@ -58,6 +61,13 @@ class Window {
     
   }
 
+  std::string getCurrentLine() {
+    int p = getYpos();
+    if (p<m_contents.size() && p>=0)
+      return m_contents[p];
+    return "";
+  }
+  
   shared_ptr<Window> addChild(WindowType type, float px, float py, float pw, float ph);
 
   uint8_t getColorType(std::string s);
@@ -65,6 +75,7 @@ class Window {
   void loadFile(std::string fn);
 
   void loadDir(std::string dn);
+
   
   void printLine(std::string f);
 
@@ -75,5 +86,21 @@ class Window {
   void printCursor();
 
   void refresh();
+
+  bool hasBorders() {
+      bool hasB = m_hasBorders;
+      if (m_parent!=nullptr)
+	hasB |= m_parent->hasBorders();
+      return hasB;
+
+  }
+
+  int getYpos() {
+    int p = m_curYpos + m_posy - hasBorders();
+    if (p<0) p=0;
+    return p;
+  }
+
+    
 
 };

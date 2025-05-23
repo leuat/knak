@@ -21,7 +21,6 @@ class Data {
   static const int COLOR_SYMBOL = 6;
   static const int COLOR_CURSOR = 7;
   
-  
 
   static void Error(std::string msg) {
     endwin();
