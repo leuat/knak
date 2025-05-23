@@ -1,20 +1,42 @@
 #include "window.h"
+#include <filesystem>
 
 void Window::printCursor() {
 
-  if (m_type!=Editor)
+
+  
+  if (m_type!=Editor && m_type!=FileList)
     return;
+  wattron(m_window,COLOR_PAIR(Data::COLOR_CURSOR));
+
+  if (m_type==FileList) {
+    // display entire line
+    wmove(m_window, m_posy+m_hasBorders, m_hasBorders);
+    if (m_posy + m_curYpos<m_contents.size())
+      wprintw(m_window,m_contents[m_posy + m_curYpos].c_str());
+    wattron(m_window,COLOR_PAIR(Data::COLOR_TEXT));
+    return;
+  }
   
   wmove(m_window, m_posy, m_posx);
-  wattron(m_window,COLOR_PAIR(Data::COLOR_CURSOR));
   char c = ' ';
   if (m_curYpos + m_posy<m_contents.size() && m_posx<m_contents[m_curYpos+m_posy].size())
     c = m_contents[m_curYpos+m_posy][m_posx];
   
   wprintw(m_window,"%c",c);
+  wattron(m_window,COLOR_PAIR(Data::COLOR_TEXT));
 }
 
 
+void Window::loadDir(std::string dn) {
+  m_contents.clear();
+  for (const auto & entry : std::filesystem::directory_iterator(dn)) {
+    auto s = entry.path();
+    s = Util::replaceAll(s,"./","");
+    m_contents.push_back(s);
+  }
+  
+}
 
 void Window::loadFile(std::string fn) {
   if (!std::filesystem::exists(fn))
@@ -82,6 +104,8 @@ void Window::constrainCursor() {
 
 
 void Window::key(int k) {
+    if (m_type==FileList)
+    return;
   if (m_curYpos + m_posy>=m_contents.size())
     return;
   if (k==127) { // backspace
@@ -115,6 +139,12 @@ uint8_t Window::getColorType(std::string s) {
 
 
 void Window::printLine(std::string f) {
+  if (m_type==FileList) {
+    wattron(m_window,COLOR_PAIR(Data::COLOR_TEXT));
+    wprintw(m_window, f.c_str());
+    return;
+  }
+  
   std::string s;
   auto is = istringstream(f);
   while (getline(is, s, ' ')) {
@@ -142,6 +172,7 @@ void Window::printFile() {
 void Window::print() {
   if (m_type == Editor) printFile();
   if (m_type == Linenumbers) printFile();
+  if (m_type == FileList) printFile();
       
   for (auto& c : m_children) {
     c->print();

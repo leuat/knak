@@ -11,7 +11,7 @@
 using namespace std;
 
 Window mainWindow;
-shared_ptr<Window> curWindow = nullptr, lineWindow = nullptr;
+shared_ptr<Window> curWindow = nullptr, lineWindow = nullptr, fileWindow = nullptr, editorWindow = nullptr;
 bool isDone = false;
 bool doRefresh = true;
 #define ctrl(x)           ((x) & 0x1f)
@@ -36,9 +36,19 @@ int moveCursor(Window* w) {
     int v = getch();
   if (v==ctrl('s'))
     exit(1);
+
+  
   if (v==27) {
     v = getch();
     v = getch();
+    //          printf("key: %i\n",v);
+    if (v==90)  { //Shift+TAB
+      if (curWindow == editorWindow)
+	curWindow = fileWindow;
+      else
+	curWindow = editorWindow;
+      return -1;
+    }
     if (v == 'B') w->m_posy++;
     if (v == 'A') w->m_posy--;
     if (v == 'C') w->m_posx++;
@@ -67,11 +77,19 @@ void init() {
   initscr();
   initColors();
   mainWindow.Init(stdscr, Window::Empty);
-  auto mainw = mainWindow.addChild(Window::Empty, 0.1, 0.1, 0.9, 0.8);
+
+  float fileSplit = 0.2;
+  float mainSplitY = 0.1;
+  float lineSplit = 0.07;
+  
+  auto mainw = mainWindow.addChild(Window::Empty, fileSplit, mainSplitY, 1-fileSplit, 1-mainSplitY*2);
+  fileWindow = mainWindow.addChild(Window::FileList, 0, mainSplitY, fileSplit, 1-mainSplitY);
+  fileWindow->m_hasBorders = true;
   mainw->m_hasBorders = true;
   
-  lineWindow = mainw->addChild(Window::Linenumbers, 0.0, 0.0, 0.1, 1.0);
-  curWindow = mainw->addChild(Window::Editor, 0.1, 0.0, 0.9, 1.0);
+  lineWindow = mainw->addChild(Window::Linenumbers, 0.0, 0.0, lineSplit, 1.0);
+  editorWindow = mainw->addChild(Window::Editor, lineSplit, 0.0,1-lineSplit, 1.0);
+  curWindow = editorWindow;
   
   if (has_colors() == FALSE) {
     endwin();
@@ -88,12 +106,13 @@ void init() {
 int main(int argc, char ** argv)
 {
   init();
-  curWindow->loadFile(argv[1]);
+  editorWindow->loadFile(argv[1]);
+  fileWindow->loadDir(".");
   
   while (!isDone) {
     
     if (true) {
-      lineWindow->fillLines(curWindow->m_curYpos);
+      lineWindow->fillLines(editorWindow->m_curYpos);
       mainWindow.print();
       doRefresh = false;
     }

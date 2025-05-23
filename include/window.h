@@ -29,7 +29,7 @@ class Window {
 
   enum WindowType {
     Editor,
-    Filelist,
+    FileList,
     TopInfo,
     Linenumbers,
     Empty
@@ -64,6 +64,8 @@ class Window {
   
   void loadFile(std::string fn);
 
+  void loadDir(std::string dn);
+  
   void printLine(std::string f);
 
   void printFile();
