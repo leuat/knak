@@ -9,7 +9,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
-
+#include "util.h"
 
 using namespace std;
 
@@ -33,42 +33,13 @@ class Window {
     TopInfo,
     Linenumbers,
     Empty
-    
   };
 
-  void key(int k) {
-    if (m_curYpos + m_posy>=m_contents.size())
-      return;
-    m_contents[m_curYpos + m_posy].insert(m_posx,(char*)&k);
-    m_posx++;
-    
-  }
+  void key(int k);
 
   WindowType m_type = Empty;
 
-  void constrainCursor() {
-    if (m_posy==m_height-m_hasBorders) {
-      m_posy -=1;
-      m_curYpos++;
-    
-    }
-    if (m_posy<m_hasBorders) {
-      m_posy +=1;
-      if (m_curYpos!=0)
-	m_curYpos--;
-    }
-    if (m_posx<m_hasBorders) {
-      m_posx +=1;
-    }
-    int mmax = m_width;
-    if (m_curYpos + m_posy <m_contents.size()) {
-      mmax = m_contents[m_curYpos + m_posy].size();                                    
-    }
-    if (m_posx>=m_width ||  m_posx>mmax) {
-      m_posx =mmax;
-    }
-
-  }
+  void constrainCursor();
 
   void fillLines(int start) {
     m_contents.clear();
@@ -81,30 +52,16 @@ class Window {
   void Init(WINDOW* w, WindowType type) {
     m_window = w;
     getmaxyx(m_window,m_height,m_width);
-    printf("%i %i \n",m_width, m_height);
+    //    printf("%i %i \n",m_width, m_height);
     m_type = type;
 
     
   }
 
-  shared_ptr<Window> addChild(WindowType type, float px, float py, float pw, float ph) {
-    int h = ph*m_height;
-    int w = pw*m_width;
-    int sx = px*m_width;
-    int sy = py*m_height;
-
-    WINDOW* nw = derwin(m_window,h,w,sy,sx);
-    shared_ptr<Window> win = make_shared<Window>();
-    win->Init(nw, type);
-    win->m_parent = this;
-    m_children.push_back(win);
-    return win;
-  }
+  shared_ptr<Window> addChild(WindowType type, float px, float py, float pw, float ph);
 
   uint8_t getColorType(std::string s);
   
-  string replaceAll(string str, const string &from, const string &to);
-
   void loadFile(std::string fn);
 
   void printLine(std::string f);
@@ -115,14 +72,6 @@ class Window {
 
   void printCursor();
 
-  void refresh() {
-    wbkgd(m_window, COLOR_PAIR(1));
-    if (m_hasBorders)
-      box(m_window,0,0);
-    wrefresh(m_window);
-    for (auto& c: m_children) {
-      c->refresh();
-    }
-  }
+  void refresh();
 
 };

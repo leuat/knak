@@ -19,7 +19,7 @@ bool doRefresh = true;
 
 void initColorValues() {
   init_color(COLOR_GREEN, 0, 750, 250);
-  init_color(COLOR_RED, 1000, 300, 500);
+  init_color(COLOR_RED, 0, 1000, 500);
   init_color(COLOR_BLUE, 100, 300, 1000);
   init_color(COLOR_BLACK, 30, 50, 100);
   init_color(COLOR_WHITE, 500, 500, 600);
@@ -56,14 +56,16 @@ int moveCursor(Window* w) {
 void initColors() {
   start_color();
   initColorValues();
-  init_pair(1, COLOR_RED, COLOR_BLACK);
-  init_pair(2, COLOR_BLUE, COLOR_BLACK);
-  init_pair(3, COLOR_WHITE, COLOR_BLACK);
-  init_pair(4, COLOR_BLACK, COLOR_RED);
+  init_pair(Data::COLOR_KEYWORD, COLOR_RED, COLOR_BLACK);
+  init_pair(Data::COLOR_TYPE, COLOR_BLUE, COLOR_BLACK);
+  init_pair(Data::COLOR_TEXT, COLOR_WHITE, COLOR_BLACK);
+  init_pair(Data::COLOR_CURSOR, COLOR_BLACK, COLOR_RED);
+  init_pair(Data::COLOR_SYMBOL, COLOR_GREEN, COLOR_BLACK);
 }
 
 void init() {
   initscr();
+  initColors();
   mainWindow.Init(stdscr, Window::Empty);
   auto mainw = mainWindow.addChild(Window::Empty, 0.1, 0.1, 0.9, 0.8);
   mainw->m_hasBorders = true;
@@ -76,9 +78,9 @@ void init() {
     printf("Your terminal does not support color\n");
     exit(1);
   }
-  initColors();
   noecho();
   curs_set(0);
+  Data::d.Init("knak.ini");
     
 
 }
