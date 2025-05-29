@@ -223,7 +223,7 @@ void Window::printSelection() {
   int fy = m_starty-m_curYpos;
   int ty = m_endy-m_curYpos;
   if (m_starty>m_endy) swap(fy,ty);
-  int posy = m_starty;
+  int posy = fy+m_curYpos;
   auto f = m_contents;
   y+=fy;
   wattron(m_window,COLOR_PAIR(Data::COLOR_SELECTION));

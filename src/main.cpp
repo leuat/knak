@@ -64,7 +64,7 @@ int moveCursor(Window* w) {
   if (v==27) {
     v = getch();
     v = getch();
-             printf("key27: %i\n",v);
+    //             printf("key27: %i\n",v);
     if (v==90)  { //Shift+TAB
       if (curWindow == editorWindow)
 	curWindow = fileWindow;
@@ -80,7 +80,7 @@ int moveCursor(Window* w) {
     curWindow->constrainCursor();
     return -1;
   }
-  printf("keyball: %i",v);
+  //  printf("keyball: %i",v);
   curWindow->key(v);
   
   return v;
