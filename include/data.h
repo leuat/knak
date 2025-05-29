@@ -20,6 +20,8 @@ class Data {
   static const int COLOR_STRING = 5;
   static const int COLOR_SYMBOL = 6;
   static const int COLOR_CURSOR = 7;
+  static const int COLOR_SELECTION = 8;
+  
   inline static const std::string s_tab = "   ";
 
   static void Error(std::string msg) {
@@ -44,6 +46,7 @@ class Data {
     setColor(COLOR_RED,ini.get("CurrentSettings").get("color_keyword"));
     setColor(COLOR_WHITE,ini.get("CurrentSettings").get("color_text"));
     setColor(COLOR_BLUE,ini.get("CurrentSettings").get("color_type"));
+    setColor(COLOR_YELLOW,ini.get("CurrentSettings").get("color_selection"));
  
   }
   

@@ -31,9 +31,10 @@ int moveCursor(Window* w) {
   int pposy = w->m_posy;
   //nonl();
   cbreak();
-  raw();
+    raw();
   //    keypad(stdscr, TRUE);
     int v = getch();
+    //printf("keyballeeeee: %i",v);
   if (v==ctrl('s'))
     exit(1);
    
@@ -48,11 +49,22 @@ int moveCursor(Window* w) {
     }
 
   }
-  
+
+    if (v==59) {
+      // shift
+      v = getch();
+      v = getch();
+      if (v == 'B') { w->select();w->moveCursorDown();w->select();}
+      if (v == 'A') { w->select(); w->moveCursorUp();w->select(); }
+    if (v == 'C') w->moveCursorRight();
+    if (v == 'D') w->moveCursorLeft();
+    return -1;
+    }
+
   if (v==27) {
     v = getch();
     v = getch();
-    //          printf("key: %i\n",v);
+             printf("key27: %i\n",v);
     if (v==90)  { //Shift+TAB
       if (curWindow == editorWindow)
 	curWindow = fileWindow;
@@ -60,15 +72,15 @@ int moveCursor(Window* w) {
 	curWindow = editorWindow;
       return -1;
     }
-    if (v == 'B') w->moveCursorDown();
-    if (v == 'A') w->moveCursorUp();
-    if (v == 'C') w->moveCursorRight();
-    if (v == 'D') w->moveCursorLeft();
+    if (v == 'B') { w->unselect(); w->moveCursorDown(); }
+    if (v == 'A') { w->unselect(); w->moveCursorUp();}
+    if (v == 'C') { w->unselect(); w->moveCursorRight();}
+    if (v == 'D') { w->unselect(); w->moveCursorLeft();}
     if (v == 27) isDone = true;
     curWindow->constrainCursor();
     return -1;
   }
-            printf("key: %i\n",v);
+  printf("keyball: %i",v);
   curWindow->key(v);
   
   return v;
@@ -83,6 +95,7 @@ void initColors() {
   init_pair(Data::COLOR_TEXT, COLOR_WHITE, COLOR_BLACK);
   init_pair(Data::COLOR_CURSOR, COLOR_BLACK, COLOR_RED);
   init_pair(Data::COLOR_SYMBOL, COLOR_GREEN, COLOR_BLACK);
+  init_pair(Data::COLOR_SELECTION, COLOR_BLACK, COLOR_YELLOW);
 }
 
 

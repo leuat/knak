@@ -14,6 +14,7 @@
 
 using namespace std;
 
+
 class Window {
  public:
   WINDOW* m_window = nullptr;
@@ -24,9 +25,11 @@ class Window {
   int m_posy = 0;
   std::vector<string> m_contents;
   bool m_hasBorders = false;
+  int m_starty=-1, m_endy=-1, m_startx=-1, m_endx=-1;
 
   std::vector<shared_ptr<Window>> m_children;
   Window* m_parent = nullptr;
+  bool m_isSelecting = false;
 
   std::string m_currentFile = "";
 
@@ -44,6 +47,18 @@ class Window {
 
   void constrainCursor(int diffy = 0);
 
+  void unselect() { m_isSelecting = false; }
+  
+  void select() {
+    if (m_isSelecting == false) {
+      m_isSelecting = true;
+      m_starty = getYpos();
+    }
+    else
+      m_endy = getYpos();
+
+  }
+  
   void fillLines(int start) {
     m_contents.clear();
     for (int i=0;i<m_height;i++) {
@@ -89,6 +104,8 @@ class Window {
   void printLine(std::string f);
 
   void printFile();
+  
+  void printSelection();
 
   void print();
 

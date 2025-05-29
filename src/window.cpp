@@ -62,6 +62,7 @@ void Window::loadFile(std::string fn) {
 
 void Window::refresh() {
   wbkgd(m_window, COLOR_PAIR(Data::COLOR_TEXT));
+  wattron(m_window,COLOR_PAIR(Data::COLOR_TEXT));
   if (m_hasBorders)
     box(m_window,0,0);
   
@@ -128,7 +129,9 @@ void Window::key(int k) {
     m_posx+=Data::s_tab.size();
     return;
   }
+  
 
+  
   if (k==10) { // enter
       auto bottom = getCurrentLine().substr(m_posx, getCurrentLine().size());
       auto top = getCurrentLine().substr(0, m_posx);
@@ -214,11 +217,37 @@ void Window::printFile() {
   }
 }
 
+void Window::printSelection() {
+  int x = hasBorders();
+  int y = hasBorders();
+  int fy = m_starty-m_curYpos;
+  int ty = m_endy-m_curYpos;
+  if (m_starty>m_endy) swap(fy,ty);
+  int posy = m_starty;
+  auto f = m_contents;
+  y+=fy;
+  wattron(m_window,COLOR_PAIR(Data::COLOR_SELECTION));
+  while (y<m_height-hasBorders() && posy<f.size()) {
+    if (fy<ty && y>=1 && y<m_height-hasBorders())
+      {
+	wmove(m_window,y,x);
+	auto s = f[posy];
+	if (posy>=0 && posy<f.size())
+	  wprintw(m_window, s.c_str());
+      }
+    posy++;
+    y++;
+    fy++;
+  }
+}
+
 void Window::print() {
   if (m_type == Editor) printFile();
   if (m_type == Linenumbers) printFile();
   if (m_type == FileList) printFile();
-      
+  
+  printSelection();
+  
   for (auto& c : m_children) {
     c->print();
   }
