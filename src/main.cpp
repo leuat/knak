@@ -60,14 +60,15 @@ int moveCursor(Window* w) {
 	curWindow = editorWindow;
       return -1;
     }
-    if (v == 'B') w->m_posy++;
-    if (v == 'A') w->m_posy--;
-    if (v == 'C') w->m_posx++;
-    if (v == 'D') w->m_posx--;
+    if (v == 'B') w->moveCursorDown();
+    if (v == 'A') w->moveCursorUp();
+    if (v == 'C') w->moveCursorRight();
+    if (v == 'D') w->moveCursorLeft();
     if (v == 27) isDone = true;
     curWindow->constrainCursor();
     return -1;
   }
+            printf("key: %i\n",v);
   curWindow->key(v);
   
   return v;

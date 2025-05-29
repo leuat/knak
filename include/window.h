@@ -42,7 +42,7 @@ class Window {
 
   WindowType m_type = Empty;
 
-  void constrainCursor();
+  void constrainCursor(int diffy = 0);
 
   void fillLines(int start) {
     m_contents.clear();
@@ -50,6 +50,15 @@ class Window {
       std::string s = "  " + std::to_string(i+start) + ":";
       m_contents.push_back(s);
     }
+  }
+
+  int getFirstCharPos() {
+    int x = 0;
+    auto s = getCurrentLine();
+    while (x<s.size() && s[x]==' ')
+      x++;
+    return x;
+    
   }
   
   void Init(WINDOW* w, WindowType type) {
@@ -101,6 +110,23 @@ class Window {
     return p;
   }
 
+  void moveCursorDown() {
+    m_posy++;
+    constrainCursor();
+  }
+  void moveCursorRight() {
+    m_posx++;
+    constrainCursor(1);
+  }
+  void moveCursorLeft() {
+    m_posx--;
+    constrainCursor(-1);
+  }
+
+  void moveCursorUp() {
+    m_posy--;
+    constrainCursor();
+  }
     
 
 };

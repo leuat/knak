@@ -46,8 +46,10 @@ void Window::loadFile(std::string fn) {
   ifstream in(fn);
   std::vector<std::string> ret;
   std::string s;
-  while (getline (in, s)) 
+  while (getline (in, s)) {
+    s = Util::replaceAll(s,"\t",Data::s_tab);
     ret.push_back(s);
+  }
    
   in.close();
   m_contents = ret;
@@ -85,24 +87,32 @@ shared_ptr<Window> Window::addChild(WindowType type, float px, float py, float p
 }
 
 
-void Window::constrainCursor() {
+void Window::constrainCursor(int diffy) {
   if (m_posy==m_height-hasBorders()) {
     m_posy -=1;
     m_curYpos++;
     
+  }
+  if (m_curYpos+m_posy>=m_contents.size()) {
+    m_posy = m_contents.size()-m_curYpos;
   }
   if (m_posy<hasBorders()) {
     m_posy +=1;
     if (m_curYpos!=0)
       m_curYpos--;
   }
+  
   if (m_posx<0) {
-    m_posx +=1;
+    if (m_posy>0)
+      m_posy-=1;
+    m_posx = getCurrentLine().size();
   }
   int mmax = getCurrentLine().size();
   if (m_posx>=m_width || m_posx>mmax) {
-    m_posx = mmax;
+    m_posy+=diffy;
+    m_posx = getFirstCharPos();
   }
+  
 }
 
 
@@ -112,9 +122,37 @@ void Window::key(int k) {
   
   if (getYpos()>=m_contents.size())
     return;
-  if (k==127) { // backspace
-    if (m_posx<=0)
+
+  if (k=='\t') {
+    m_contents[getYpos()].insert(m_posx,Data::s_tab);
+    m_posx+=Data::s_tab.size();
+    return;
+  }
+
+  if (k==10) { // enter
+      auto bottom = getCurrentLine().substr(m_posx, getCurrentLine().size());
+      auto top = getCurrentLine().substr(0, m_posx);
+      m_contents[getYpos()] = top;
+      m_contents.insert(m_contents.begin()+getYpos()+1,bottom);
+      moveCursorDown();
+      m_posx = getFirstCharPos();
+      
       return;
+  }
+
+  if (k==127) { // backspace
+    if (m_posx<0)
+      return;
+    if (m_posx == 0 && getYpos()!=0) {
+      // copy back
+      auto s = getCurrentLine();
+      auto np = m_contents[getYpos()-1].size();
+      m_contents[getYpos()-1]+=s;
+      m_contents.erase(m_contents.begin() + getYpos());
+      moveCursorUp();
+      m_posx = np;
+      return;
+    }
     m_contents[getYpos()].erase(m_posx-1,1);
     m_posx--;
     return;

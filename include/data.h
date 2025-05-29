@@ -20,7 +20,7 @@ class Data {
   static const int COLOR_STRING = 5;
   static const int COLOR_SYMBOL = 6;
   static const int COLOR_CURSOR = 7;
-  
+  inline static const std::string s_tab = "   ";
 
   static void Error(std::string msg) {
     endwin();
