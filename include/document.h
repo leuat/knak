@@ -32,6 +32,7 @@ public:
   static const int MAX_UNDO = 1000;
   std::vector<Snap> m_snaps;
   int m_curYpos = 0;
+  int m_curXpos = 0;
   int m_posx = 0;
   int m_posy = 0;
   bool m_isLocked = false;
@@ -115,11 +116,13 @@ public:
 
   void moveCursorUp() {
     m_posy--;
+    m_curXpos = 0;
     constrainCursor();
   }
 
   void moveCursorDown() {
     m_posy++;
+    m_curXpos = 0;
     constrainCursor();
   }
 

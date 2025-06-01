@@ -57,14 +57,30 @@ void Document::constrainCursor(int diffy) {
   }
   
   if (m_posx<0) {
-    if (m_posy>0)
-      m_posy-=1;
-    m_posx = getCurrentLine().size();
+    if (m_curXpos>0) {
+      m_curXpos-=1;
+      m_posx++;
+    }
+    else {
+      // move to prev line
+      if (m_posy>0)
+	m_posy-=1;
+      m_posx = getCurrentLine().size();
+    }
   }
   int mmax = getCurrentLine().size();
-  if (m_posx>=m_width || m_posx>mmax) {
+  if (m_posx+m_curXpos>mmax) {
     m_posy+=diffy;
+    m_curXpos = 0;
     m_posx = getFirstCharPos();
+  }
+  if (m_posx==m_width-hasBorders()*2) {
+    m_curXpos+=1;
+    m_posx--;
+  }
+  if (m_posx>m_width-hasBorders()*2) {
+    m_curXpos = getCurrentLine().size()-m_width+hasBorders()*2;
+    m_posx = m_width-hasBorders()*2;
   }
   
 }

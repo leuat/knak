@@ -88,17 +88,34 @@ int moveCursor(Window* w) {
   raw();
   //    keypad(stdscr, TRUE);
   int v = getch();
-  //           printf("key: %i     \n",v);
+  //            printf("key: %i     \n",v);
   if (v==ctrl('q'))
     isDone = true;
+  
   if (v==ctrl('c')) {
     w->m_doc->copySelection();
+    return -1;
+  }
+  if (v==ctrl('w')) {
+    curWindow = tabOrder[0];
+    return -1;
+  }
+  if (v==ctrl('e')) {
+    curWindow = tabOrder[1];
+    return -1;
+  }
+  if (v==ctrl('r')) {
+    curWindow = tabOrder[2];
     return -1;
   }
   if (v==ctrl('b')) {
     buildProject();
     return -1;
+  }  if (v==ctrl('c')) {
+    w->m_doc->copySelection();
+    return -1;
   }
+
   if (v==ctrl('v')) {
     w->m_doc->snap();
     w->m_doc->pasteSelection();
@@ -145,11 +162,11 @@ int moveCursor(Window* w) {
     int v2 = getch();
     //    printf("key: %i %i %i    \n",v,v1,v2);
     //             printf("key27: %i\n",v);
-    if (v2==90)  { //Shift+TAB
+    /*   if (v2==90)  { //Shift+TAB
       curTab = (curTab+1)%tabOrder.size();
       curWindow = tabOrder[curTab];
       return -1;
-    }
+      }*/
     if (v2 == 54) { // page down
       w->m_doc->pageDown();
       v1 = getch();
@@ -238,7 +255,8 @@ int main(int argc, char ** argv)
 {
   init();
   loadDocument(argv[1]);
-  fileWindow->m_doc->loadDir(".");
+  if (argc!=1)
+    fileWindow->m_doc->loadDir(".");
   
   while (!isDone) {
     windowWindow->m_doc->m_currentFile = editorWindow->m_doc->m_currentFile;

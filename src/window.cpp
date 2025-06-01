@@ -1,5 +1,6 @@
 #include "window.h"
 #include <filesystem>
+#include <algorithm>
 
 void Window::printCursor() {
   if (!m_doc)
@@ -29,7 +30,7 @@ void Window::printCursor() {
   wmove(m_window, m_doc->m_posy, m_doc->m_posx+hasBorders());
   char c = ' ';
   if (posy<m_doc->m_contents.size() && m_doc->m_posx<m_doc->m_contents[posy].size())
-    c = m_doc->m_contents[posy][m_doc->m_posx];
+    c = m_doc->m_contents[posy][m_doc->m_posx+m_doc->m_curXpos];
   
   wprintw(m_window,"%c",c);
   wattron(m_window,COLOR_PAIR(Data::COLOR_TEXT));
@@ -112,6 +113,10 @@ void Window::printLine(std::string f) {
   }
   
   std::string s;
+  if (m_doc->m_curXpos<f.size())
+    f = f.substr(m_doc->m_curXpos, std::min((int)m_width-hasBorders()*2, (int)f.size()));
+  else
+    f = "";
   auto is = istringstream(f);
   while (getline(is, s, ' ')) {
     wattron(m_window,COLOR_PAIR(getColorType(s)));
@@ -160,7 +165,8 @@ void Window::printWindowList(bool showSelection) {
 }
 
 void Window::printSelection() {
-  int x = hasBorders();
+  int cx = m_doc->m_curXpos;
+  int x = hasBorders()-cx;
   int y = hasBorders();
   int fy = m_doc->m_starty-m_doc->m_curYpos;
   int ty = m_doc->m_endy-m_doc->m_curYpos;
@@ -173,18 +179,29 @@ void Window::printSelection() {
     if (fy<=ty && y>=hasBorders() && y<m_height-hasBorders())
       {
 	auto s = f[posy];
-	int sx1 = 0;
-	int sx2 = s.size();
+	int sx1 = std::max(0-cx,0);
+	int sx2 = std::max(0-cx,(int)s.size());
+	
 	if (posy == m_doc->m_starty)
 	  sx1 = m_doc->m_startx;
 	if (posy == m_doc->m_endy)
 	  sx2 = m_doc->m_endx;
 	if (sx2<sx1)
 	  swap(sx1,sx2);
-	
+	int cap = 0;
+	if (x+sx1<hasBorders()) {
+	  sx1=-x + hasBorders();
+	}
+	if (sx2-sx1>m_width-hasBorders()*2)
+	  sx2 = m_width-hasBorders()*2 +m_doc->m_curXpos;
 	wmove(m_window,y,x+sx1);
-	if (posy>=0 && posy<f.size())
-	  wprintw(m_window, s.substr(sx1,sx2-sx1).c_str());
+	if (posy>=0 && posy<f.size()) {
+	  string f = s.substr(sx1,sx2-sx1);
+	  if (m_doc->m_curXpos<f.size())
+	    f = f.substr(m_doc->m_curXpos, std::min((int)m_width-hasBorders()*2, (int)f.size()));
+	  
+	  wprintw(m_window, f.c_str());
+	}
       }
     posy++;
     y++;
