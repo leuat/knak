@@ -2,31 +2,34 @@
 #include <filesystem>
 
 void Window::printCursor() {
+  if (!m_doc)
+    return;
+  
   if (m_type!=Editor && m_type!=FileList)
     return;
   wattron(m_window,COLOR_PAIR(Data::COLOR_CURSOR));
-  int posy = getYpos();
+  int posy = m_doc->getYpos();
   if (m_type==FileList) {
     // display entire line
-    wmove(m_window, m_posy, hasBorders());
-    if (posy<m_contents.size())
-      wprintw(m_window,m_contents[posy].c_str());
+    wmove(m_window, m_doc->m_posy, hasBorders());
+    if (posy<m_doc->m_contents.size())
+      wprintw(m_window,m_doc->m_contents[posy].c_str());
     
     wattron(m_window,COLOR_PAIR(Data::COLOR_TEXT));
     return;
   }
   
-  wmove(m_window, m_posy, m_posx+hasBorders());
+  wmove(m_window, m_doc->m_posy, m_doc->m_posx+hasBorders());
   char c = ' ';
-  if (posy<m_contents.size() && m_posx<m_contents[posy].size())
-    c = m_contents[posy][m_posx];
+  if (posy<m_doc->m_contents.size() && m_doc->m_posx<m_doc->m_contents[posy].size())
+    c = m_doc->m_contents[posy][m_doc->m_posx];
   
   wprintw(m_window,"%c",c);
   wattron(m_window,COLOR_PAIR(Data::COLOR_TEXT));
 }
 
 
-void Window::loadDir(std::string dn) {
+void Document::loadDir(std::string dn) {
   m_contents.clear();
   m_contents.push_back("../");
   for (const auto & entry : std::filesystem::directory_iterator(dn)) {
@@ -40,7 +43,7 @@ void Window::loadDir(std::string dn) {
 }
 
 
-void Window::loadFile(std::string fn) {
+void Document::loadFile(std::string fn) {
   if (!std::filesystem::exists(fn))
     Data::Error("File does not exist: "+fn);
   ifstream in(fn);
@@ -88,7 +91,7 @@ shared_ptr<Window> Window::addChild(WindowType type, float px, float py, float p
 }
 
 
-void Window::constrainCursor(int diffy) {
+void Document::constrainCursor(int diffy) {
   if (m_posy==m_height-hasBorders()) {
     m_posy -=1;
     m_curYpos++;
@@ -117,14 +120,7 @@ void Window::constrainCursor(int diffy) {
 }
 
 
-void Window::key(int k) {
-  if (m_type==FileList)
-    return;
-  
-  if (getYpos()>=m_contents.size())
-    return;
-
-  snap();
+void Document::key(int k) {
   if (k=='\t') {
     m_contents[getYpos()].insert(m_posx,Data::s_tab);
     m_posx+=Data::s_tab.size();
@@ -167,7 +163,22 @@ void Window::key(int k) {
   
 }
 
-void Window::undo() {
+
+void Window::key(int k) {
+  if (m_type!=Editor)
+    return;
+  if (!m_doc)
+    return;
+  
+  if (m_doc->getYpos()>=m_doc->m_contents.size())
+    return;
+
+  m_doc->snap();
+  m_doc->key(k);
+  
+}
+
+void Document::undo() {
   if (m_snaps.size() == 0)
     return;
   auto s = m_snaps.back();
@@ -215,11 +226,13 @@ void Window::printLine(std::string f) {
 }
 
 void Window::printFile() {
+  if (!m_doc)
+    return;
   werase(m_window);
   int x = hasBorders();
   int y = hasBorders();
-  int posy = m_curYpos;
-  auto f = m_contents;
+  int posy = m_doc->m_curYpos;
+  auto f = m_doc->m_contents;
   while (y<m_height-hasBorders() && posy<f.size()) {
     wmove(m_window,y,x);
     if (posy>=0 && posy<f.size())
@@ -233,9 +246,9 @@ void Window::printWindowList() {
   werase(m_window);
   int x = hasBorders();
   int y = hasBorders();
-  int posy = m_curYpos;
-  auto f = m_contents;
-  while (x<m_width-hasBorders()) {
+  int posy = 0;
+  auto f = m_doc->m_contents;
+  while (x<m_width-hasBorders() && posy<f.size()) {
     wmove(m_window,y,x);
     printLine(f[posy]);
     posy++;
@@ -246,11 +259,11 @@ void Window::printWindowList() {
 void Window::printSelection() {
   int x = hasBorders();
   int y = hasBorders();
-  int fy = m_starty-m_curYpos;
-  int ty = m_endy-m_curYpos;
-  if (m_starty>m_endy) swap(fy,ty);
-  int posy = fy+m_curYpos;
-  auto f = m_contents;
+  int fy = m_doc->m_starty-m_doc->m_curYpos;
+  int ty = m_doc->m_endy-m_doc->m_curYpos;
+  if (m_doc->m_starty>m_doc->m_endy) swap(fy,ty);
+  int posy = fy+m_doc->m_curYpos;
+  auto f = m_doc->m_contents;
   y+=fy;
   wattron(m_window,COLOR_PAIR(Data::COLOR_SELECTION));
   while (y<m_height-hasBorders() && posy<f.size()) {
@@ -259,10 +272,10 @@ void Window::printSelection() {
 	auto s = f[posy];
 	int sx1 = 0;
 	int sx2 = s.size();
-	if (posy == m_starty)
-	  sx1 = m_startx;
-	if (posy == m_endy)
-	  sx2 = m_endx;
+	if (posy == m_doc->m_starty)
+	  sx1 = m_doc->m_startx;
+	if (posy == m_doc->m_endy)
+	  sx2 = m_doc->m_endx;
 	if (sx2<sx1)
 	  swap(sx1,sx2);
 	
@@ -276,14 +289,14 @@ void Window::printSelection() {
   }
 }
 
-void Window::snap() {
+void Document::snap() {
   m_snaps.push_back(Snap(m_contents, m_posx, m_posy, m_curYpos));
   if (m_snaps.size()>MAX_UNDO) {
     m_snaps.erase(m_snaps.begin()+0);
   }
 }
 
-void Window::pasteSelection() {
+void Document::pasteSelection() {
   if (m_selection.size()==0)
     return;
   int posy = getYpos();
@@ -298,7 +311,7 @@ void Window::pasteSelection() {
   }
 }
 
-void Window::copySelection() {
+void Document::copySelection() {
   m_selection.clear();
   if (m_starty==-1 || m_endy == -1)
     return;
@@ -326,12 +339,18 @@ void Window::copySelection() {
 }
 
 void Window::print() {
+  if (!m_doc)
+    return;
+  if (hasBorders())
+    m_doc->m_hasBorders = true;
+   
   if (m_type == Editor) printFile();
   if (m_type == Linenumbers) printFile();
   if (m_type == FileList) printFile();
   if (m_type == Windows) printWindowList();
-  
-  printSelection();
+
+  if (m_type == Editor)
+    printSelection();
   
   for (auto& c : m_children) {
     c->print();

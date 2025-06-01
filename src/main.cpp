@@ -11,11 +11,14 @@
 using namespace std;
 
 Window mainWindow;
-shared_ptr<Window> curWindow = nullptr, lineWindow = nullptr, fileWindow = nullptr, editorWindow = nullptr, windowWindow = nullptr;
+shared_ptr<Window> curWindow = nullptr, lineWindow = nullptr, fileWindow = nullptr, windowWindow = nullptr, editorWindow = nullptr;
+std::vector<shared_ptr<Window>> docs;
 bool isDone = false;
 bool doRefresh = true;
 #define ctrl(x)           ((x) & 0x1f)
 
+std::vector<std::shared_ptr<Window>> tabOrder;
+int curTab = 0;
 
 void initColorValues() {
   init_color(COLOR_GREEN, 0, 750, 250);
@@ -25,10 +28,15 @@ void initColorValues() {
   init_color(COLOR_WHITE, 500, 500, 600);
 }
 
+void newDocument(std::string fn) {
+  
+}
+
 int moveCursor(Window* w) {
   // refreshes the screen
-  int pposx = w->m_posx;
-  int pposy = w->m_posy;
+  
+  int pposx = w->m_doc->m_posx;
+  int pposy = w->m_doc->m_posy;
   //nonl();
   cbreak();
   raw();
@@ -38,26 +46,26 @@ int moveCursor(Window* w) {
   if (v==ctrl('q'))
     isDone = true;
   if (v==ctrl('c')) {
-    w->copySelection();
+    w->m_doc->copySelection();
     return -1;
   }
   if (v==ctrl('v')) {
-    w->snap();
-    w->pasteSelection();
+    w->m_doc->snap();
+    w->m_doc->pasteSelection();
     return -1;
   }
   if (v==ctrl('z')) {
-    w->undo();
+    w->m_doc->undo();
     return -1;
   }
    
   if (v==10) { // enter
 	       // Load file
     if (curWindow->m_type==Window::FileList) {
-      if (Util::isDirectory(fileWindow->getCurrentLine()))
-	fileWindow->loadDir(fileWindow->getCurrentLine());
+      if (Util::isDirectory(fileWindow->m_doc->getCurrentLine()))
+	fileWindow->m_doc->loadDir(fileWindow->m_doc->getCurrentLine());
       else
-	editorWindow->loadFile(fileWindow->getCurrentLine());
+	editorWindow->m_doc->loadFile(fileWindow->m_doc->getCurrentLine());
       return -1;
     }
 
@@ -67,7 +75,7 @@ int moveCursor(Window* w) {
       // shift
     v = getch();
     v = getch();
-    w->moveCursor(v,true);
+    w->m_doc->moveCursor(v,true);
     return -1;
     }
 
@@ -76,25 +84,23 @@ int moveCursor(Window* w) {
     v = getch();
     //             printf("key27: %i\n",v);
     if (v==90)  { //Shift+TAB
-      if (curWindow == editorWindow)
-	curWindow = fileWindow;
-      else
-	curWindow = editorWindow;
+      curTab = (curTab+1)%tabOrder.size();
+      curWindow = tabOrder[curTab];
       return -1;
     }
-    w->moveCursor(v,false);
+    w->m_doc->moveCursor(v,false);
     if (v==27) {
       getch();
-      w->clearSelection();
+      w->m_doc->clearSelection();
       return -1;
       }
     //    if (v == 27) isDone = true;
-    curWindow->constrainCursor();
+    curWindow->m_doc->constrainCursor();
     return -1;
   }
   //  printf("keyball: %i",v);
   
-  w->clearSelection();
+  w->m_doc->clearSelection();
   curWindow->key(v);
   
   return v;
@@ -126,7 +132,8 @@ void init() {
   auto mainw = mainWindow.addChild(Window::Empty, fileSplit, mainSplitY, 1-fileSplit, 1-mainSplitY*2);
   fileWindow = mainWindow.addChild(Window::FileList, 0, mainSplitY, fileSplit, 1-mainSplitY);
   fileWindow->m_hasBorders = true;
-  windowWindow = mainWindow.addChild(Window::Windows, fileSplit, 0, 1, mainSpltY);
+  windowWindow = mainWindow.addChild(Window::Windows, fileSplit, 0, 1.0-fileSplit, mainSplitY);
+  windowWindow->m_hasBorders = true;
   
   mainw->m_hasBorders = true;
   
@@ -142,6 +149,9 @@ void init() {
   noecho();
   curs_set(0);
   Data::d.Init("knak.ini");
+  tabOrder.push_back(editorWindow);
+  tabOrder.push_back(windowWindow);
+  tabOrder.push_back(fileWindow);
     
 
 }
@@ -149,14 +159,15 @@ void init() {
 int main(int argc, char ** argv)
 {
   init();
-  editorWindow->loadFile(argv[1]);
-  windowWindow->m_contents.append(std::string(argv[1]);
-  fileWindow->loadDir(".");
+  editorWindow->m_doc->loadFile(argv[1]);
+  windowWindow->m_doc->m_contents.push_back("build");
+  windowWindow->m_doc->m_contents.push_back(std::string(argv[1]));
+  fileWindow->m_doc->loadDir(".");
   
   while (!isDone) {
     
     if (true) {
-      lineWindow->fillLines(editorWindow->m_curYpos);
+      lineWindow->m_doc->fillLines(editorWindow->m_doc->m_curYpos);
       mainWindow.print();
       doRefresh = false;
     }
