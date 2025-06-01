@@ -71,6 +71,8 @@ void Document::constrainCursor(int diffy) {
 
 
 void Document::key(int k) {
+  if (m_isLocked)
+    return;
   if (k=='\t') {
     m_contents[getYpos()].insert(m_posx,Data::s_tab);
     m_posx+=Data::s_tab.size();

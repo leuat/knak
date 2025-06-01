@@ -34,6 +34,7 @@ public:
   int m_curYpos = 0;
   int m_posx = 0;
   int m_posy = 0;
+  bool m_isLocked = false;
   int m_starty=-1, m_endy=-1, m_startx=-1, m_endx=-1;
   std::vector<string> m_contents, m_selection;
   bool m_isSelecting = false;

@@ -9,13 +9,14 @@
 #include "window.h"
 
 using namespace std;
+#define ctrl(x)           ((x) & 0x1f)
 
 Window mainWindow;
 shared_ptr<Window> curWindow = nullptr, lineWindow = nullptr, fileWindow = nullptr, windowWindow = nullptr, editorWindow = nullptr;
 std::vector<shared_ptr<Window>> docs;
 bool isDone = false;
 bool doRefresh = true;
-#define ctrl(x)           ((x) & 0x1f)
+shared_ptr<Document> build = nullptr;
 
 std::vector<std::shared_ptr<Window>> tabOrder;
 std::vector<std::shared_ptr<Document>> documents;
@@ -203,6 +204,11 @@ void init() {
   tabOrder.push_back(editorWindow);
   tabOrder.push_back(fileWindow);
   tabOrder.push_back(windowWindow);
+
+  build = make_shared<Document>();
+  build->m_doc->m_currentFile = "[build]";
+  m_documents.append(build);
+  
     
 
 }
