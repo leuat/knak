@@ -43,7 +43,6 @@ class Window {
   WindowType m_type = Empty;
   
   void key(int k);
-
   
   void Init(WINDOW* w, WindowType type) {
     m_window = w;

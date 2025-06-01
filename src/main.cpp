@@ -7,6 +7,7 @@
 #include <vector>
 #include <algorithm>
 #include "window.h"
+#include <unistd.h>
 
 using namespace std;
 #define ctrl(x)           ((x) & 0x1f)
@@ -59,6 +60,25 @@ void loadDocument(std::string fn) {
   
 }
 
+void buildProject() {
+  //  system("make");
+  //  execlp("ls", "ls", "-l", NULL);
+
+  stream = popen("make", "r");
+  FILE * stream;
+  const int max_buffer = 256;
+  char buffer[max_buffer];
+  build->m_contents.clear();
+  if (stream) {
+    while (!feof(stream))
+      if (fgets(buffer, max_buffer, stream) != NULL) build->m_contents.push_back(std::string(buffer));
+    pclose(stream);
+  }
+
+  
+}
+
+
 int moveCursor(Window* w) {
   // refreshes the screen
   
@@ -69,15 +89,16 @@ int moveCursor(Window* w) {
   raw();
   //    keypad(stdscr, TRUE);
   int v = getch();
-           printf("key: %i     \n",v);
+  //           printf("key: %i     \n",v);
   if (v==ctrl('q'))
     isDone = true;
   if (v==ctrl('c')) {
     w->m_doc->copySelection();
     return -1;
   }
-  if (v==ctrl(44)) {
-    isDone = true;
+  if (v==ctrl('b')) {
+    buildProject();
+    return -1;
   }
   if (v==ctrl('v')) {
     w->m_doc->snap();
@@ -206,8 +227,9 @@ void init() {
   tabOrder.push_back(windowWindow);
 
   build = make_shared<Document>();
-  build->m_doc->m_currentFile = "[build]";
-  m_documents.append(build);
+  build->m_currentFile = "[build]";
+  documents.push_back(build);
+  windowWindow->m_doc->m_contents.push_back(build->m_currentFile);
   
     
 
