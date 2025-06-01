@@ -47,6 +47,7 @@ class Data {
     setColor(COLOR_WHITE,ini.get("CurrentSettings").get("color_text"));
     setColor(COLOR_BLUE,ini.get("CurrentSettings").get("color_type"));
     setColor(COLOR_YELLOW,ini.get("CurrentSettings").get("color_selection"));
+    setColor(COLOR_BLACK,ini.get("CurrentSettings").get("color_background"));
  
   }
   
