@@ -18,6 +18,8 @@ bool doRefresh = true;
 #define ctrl(x)           ((x) & 0x1f)
 
 std::vector<std::shared_ptr<Window>> tabOrder;
+std::vector<std::shared_ptr<Document>> documents;
+
 int curTab = 0;
 
 void initColorValues() {
@@ -29,6 +31,15 @@ void initColorValues() {
 }
 
 void newDocument(std::string fn) {
+  
+}
+
+void loadDocument(std::string fn) {
+  auto doc = make_shared<Document>();
+  doc->loadFile(fn);
+  windowWindow->m_doc->m_contents.push_back(fn);
+  editorWindow->m_doc = doc;
+  documents.push_back(doc);
   
 }
 
@@ -65,7 +76,7 @@ int moveCursor(Window* w) {
       if (Util::isDirectory(fileWindow->m_doc->getCurrentLine()))
 	fileWindow->m_doc->loadDir(fileWindow->m_doc->getCurrentLine());
       else
-	editorWindow->m_doc->loadFile(fileWindow->m_doc->getCurrentLine());
+	loadDocument(fileWindow->m_doc->getCurrentLine());
       return -1;
     }
 
@@ -150,8 +161,8 @@ void init() {
   curs_set(0);
   Data::d.Init("knak.ini");
   tabOrder.push_back(editorWindow);
-  tabOrder.push_back(windowWindow);
   tabOrder.push_back(fileWindow);
+  tabOrder.push_back(windowWindow);
     
 
 }
@@ -159,13 +170,11 @@ void init() {
 int main(int argc, char ** argv)
 {
   init();
-  editorWindow->m_doc->loadFile(argv[1]);
-  windowWindow->m_doc->m_contents.push_back("build");
-  windowWindow->m_doc->m_contents.push_back(std::string(argv[1]));
+  loadDocument(argv[1]);
   fileWindow->m_doc->loadDir(".");
   
   while (!isDone) {
-    
+    windowWindow->m_doc->m_currentFile = editorWindow->m_doc->m_currentFile;
     if (true) {
       lineWindow->m_doc->fillLines(editorWindow->m_doc->m_curYpos);
       mainWindow.print();

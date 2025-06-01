@@ -17,6 +17,7 @@ add_executable(knak
   src/window.cpp
   src/data.cpp
   src/util.cpp
+  src/document.cpp
 )
 
 target_include_directories(knak PRIVATE include/)
