@@ -229,6 +229,20 @@ void Window::printFile() {
   }
 }
 
+void Window::printWindowList() {
+  werase(m_window);
+  int x = hasBorders();
+  int y = hasBorders();
+  int posy = m_curYpos;
+  auto f = m_contents;
+  while (x<m_width-hasBorders()) {
+    wmove(m_window,y,x);
+    printLine(f[posy]);
+    posy++;
+    x+=f[posy].size()+1;
+  }
+}
+
 void Window::printSelection() {
   int x = hasBorders();
   int y = hasBorders();
@@ -315,6 +329,7 @@ void Window::print() {
   if (m_type == Editor) printFile();
   if (m_type == Linenumbers) printFile();
   if (m_type == FileList) printFile();
+  if (m_type == Windows) printWindowList();
   
   printSelection();
   

@@ -11,7 +11,7 @@
 using namespace std;
 
 Window mainWindow;
-shared_ptr<Window> curWindow = nullptr, lineWindow = nullptr, fileWindow = nullptr, editorWindow = nullptr;
+shared_ptr<Window> curWindow = nullptr, lineWindow = nullptr, fileWindow = nullptr, editorWindow = nullptr, windowWindow = nullptr;
 bool isDone = false;
 bool doRefresh = true;
 #define ctrl(x)           ((x) & 0x1f)
@@ -126,6 +126,8 @@ void init() {
   auto mainw = mainWindow.addChild(Window::Empty, fileSplit, mainSplitY, 1-fileSplit, 1-mainSplitY*2);
   fileWindow = mainWindow.addChild(Window::FileList, 0, mainSplitY, fileSplit, 1-mainSplitY);
   fileWindow->m_hasBorders = true;
+  windowWindow = mainWindow.addChild(Window::Windows, fileSplit, 0, 1, mainSpltY);
+  
   mainw->m_hasBorders = true;
   
   lineWindow = mainw->addChild(Window::Linenumbers, 0.0, 0.0, lineSplit, 1.0);
@@ -148,6 +150,7 @@ int main(int argc, char ** argv)
 {
   init();
   editorWindow->loadFile(argv[1]);
+  windowWindow->m_contents.append(std::string(argv[1]);
   fileWindow->loadDir(".");
   
   while (!isDone) {

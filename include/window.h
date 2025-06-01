@@ -52,7 +52,9 @@ class Window {
     FileList,
     TopInfo,
     Linenumbers,
+    Windows,
     Empty
+    
   };
 
   void key(int k);
