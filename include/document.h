@@ -103,10 +103,6 @@ public:
     m_endy = -1;
   }
     
-  void moveCursorDown() {
-    m_posy++;
-    constrainCursor();
-  }
   void moveCursorRight() {
     m_posx++;
     constrainCursor(1);
@@ -120,6 +116,32 @@ public:
     m_posy--;
     constrainCursor();
   }
+
+  void moveCursorDown() {
+    m_posy++;
+    constrainCursor();
+  }
+
+  void pageUp() {
+    const int d = (m_height - hasBorders()*2)/2;
+    m_posy-=d;
+    if (m_posy<0) {
+      m_curYpos-=d;
+      m_posy+=d;
+    }
+    constrainCursor();
+  }
+
+  void pageDown() {
+    const int d = (m_height - hasBorders()*2)/2;
+    m_posy+=d;
+    if (m_posy>m_height-hasBorders()*2) {
+      m_curYpos+=d;
+      m_posy-=d;
+    }
+    constrainCursor();
+  }
+
   void moveCursor(int v, bool is_select) {
       if (is_select) {
 	if (v == 'B') { select(); moveCursorDown();select();}

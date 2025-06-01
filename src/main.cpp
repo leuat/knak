@@ -63,17 +63,20 @@ int moveCursor(Window* w) {
   
   int pposx = w->m_doc->m_posx;
   int pposy = w->m_doc->m_posy;
-  //nonl();
+  //  nonl();
   cbreak();
   raw();
   //    keypad(stdscr, TRUE);
-    int v = getch();
-    //printf("keyballeeeee: %i",v);
+  int v = getch();
+           printf("key: %i     \n",v);
   if (v==ctrl('q'))
     isDone = true;
   if (v==ctrl('c')) {
     w->m_doc->copySelection();
     return -1;
+  }
+  if (v==ctrl(44)) {
+    isDone = true;
   }
   if (v==ctrl('v')) {
     w->m_doc->snap();
@@ -84,7 +87,8 @@ int moveCursor(Window* w) {
     w->m_doc->undo();
     return -1;
   }
-   
+
+  
   if (v==10) { // enter
 	       // Load file
     if (curWindow->m_type==Window::FileList) {
@@ -94,28 +98,49 @@ int moveCursor(Window* w) {
 	loadDocument(fileWindow->m_doc->getCurrentLine());
       return -1;
     }
+    if (curWindow->m_type==Window::Windows) {
+      setDocument(windowWindow->m_doc->m_contents[windowWindow->m_doc->m_posy]);
+      return -1;
+    }
 
   }
 
   if (v==59) { // shift + cursor keys select
       // shift
-    v = getch();
-    v = getch();
-    w->m_doc->moveCursor(v,true);
+    auto v1 = getch();
+    auto v2 = getch();
+    if (v1==50) // shift 
+      w->m_doc->moveCursor(v2,true);
+    if (v1==53) {// ctrl
+      windowWindow->m_doc->moveCursor(v2,true);
+      setDocument(windowWindow->m_doc->m_contents[windowWindow->m_doc->m_posy]);
+      
+    }
     return -1;
     }
 
   if (v==27) {
-    v = getch();
-    v = getch();
+    int v1 = getch();
+    int v2 = getch();
+    //    printf("key: %i %i %i    \n",v,v1,v2);
     //             printf("key27: %i\n",v);
-    if (v==90)  { //Shift+TAB
+    if (v2==90)  { //Shift+TAB
       curTab = (curTab+1)%tabOrder.size();
       curWindow = tabOrder[curTab];
       return -1;
     }
-    w->m_doc->moveCursor(v,false);
-    if (v==27) {
+    if (v2 == 54) { // page down
+      w->m_doc->pageDown();
+      v1 = getch();
+      return -1;
+    }
+    if (v2 == 53) { // page up
+      w->m_doc->pageUp();
+      v1 = getch();
+      return -1;
+    }
+    w->m_doc->moveCursor(v2,false);
+    if (v2==27) {
       getch();
       w->m_doc->clearSelection();
       return -1;

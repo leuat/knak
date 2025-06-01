@@ -36,6 +36,12 @@ void Document::loadFile(std::string fn) {
 
 
 void Document::constrainCursor(int diffy) {
+  if (m_curYpos<0) {
+    m_curYpos = 0;
+    m_posy = 0;
+  }
+  if (m_curYpos>=m_contents.size()-m_height)
+    m_curYpos = m_contents.size()-m_height-1;
   if (m_posy==m_height-hasBorders()) {
     m_posy -=1;
     m_curYpos++;
