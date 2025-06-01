@@ -30,11 +30,26 @@ void initColorValues() {
   init_color(COLOR_WHITE, 500, 500, 600);
 }
 
+bool setDocument(std::string fn) {
+  for (auto& d : documents) {
+    if (d->m_currentFile == fn) {
+      editorWindow->m_doc = d;
+      return true;
+    }
+      
+  }
+  return false;
+    
+}
+
 void newDocument(std::string fn) {
   
 }
 
+
 void loadDocument(std::string fn) {
+  if (setDocument(fn))
+    return;
   auto doc = make_shared<Document>();
   doc->loadFile(fn);
   windowWindow->m_doc->m_contents.push_back(fn);
