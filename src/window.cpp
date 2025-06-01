@@ -124,6 +124,7 @@ void Window::key(int k) {
   if (getYpos()>=m_contents.size())
     return;
 
+  snap();
   if (k=='\t') {
     m_contents[getYpos()].insert(m_posx,Data::s_tab);
     m_posx+=Data::s_tab.size();
@@ -139,7 +140,6 @@ void Window::key(int k) {
       m_contents.insert(m_contents.begin()+getYpos()+1,bottom);
       moveCursorDown();
       m_posx = getFirstCharPos();
-      
       return;
   }
 
@@ -166,6 +166,18 @@ void Window::key(int k) {
   m_posx++;
   
 }
+
+void Window::undo() {
+  if (m_snaps.size() == 0)
+    return;
+  auto s = m_snaps.back();
+  m_contents = s.m_contents;
+  m_posx = s.m_posx;
+  m_posy = s.m_posy;
+  m_curYpos = s.m_curYpos;
+  m_snaps.pop_back();
+}
+
 
 
 uint8_t Window::getColorType(std::string s) {
@@ -228,17 +240,75 @@ void Window::printSelection() {
   y+=fy;
   wattron(m_window,COLOR_PAIR(Data::COLOR_SELECTION));
   while (y<m_height-hasBorders() && posy<f.size()) {
-    if (fy<ty && y>=1 && y<m_height-hasBorders())
+    if (fy<=ty && y>=hasBorders() && y<m_height-hasBorders())
       {
-	wmove(m_window,y,x);
 	auto s = f[posy];
+	int sx1 = 0;
+	int sx2 = s.size();
+	if (posy == m_starty)
+	  sx1 = m_startx;
+	if (posy == m_endy)
+	  sx2 = m_endx;
+	if (sx2<sx1)
+	  swap(sx1,sx2);
+	
+	wmove(m_window,y,x+sx1);
 	if (posy>=0 && posy<f.size())
-	  wprintw(m_window, s.c_str());
+	  wprintw(m_window, s.substr(sx1,sx2-sx1).c_str());
       }
     posy++;
     y++;
     fy++;
   }
+}
+
+void Window::snap() {
+  m_snaps.push_back(Snap(m_contents, m_posx, m_posy, m_curYpos));
+  if (m_snaps.size()>MAX_UNDO) {
+    m_snaps.erase(m_snaps.begin()+0);
+  }
+}
+
+void Window::pasteSelection() {
+  if (m_selection.size()==0)
+    return;
+  int posy = getYpos();
+  int posx = m_posx;
+  for (auto &s : m_selection) {
+    if (posx!=0)
+      m_contents[posy].insert(posx,s);
+    else m_contents.insert(m_contents.begin() + posy,s);
+    if (posx==0) moveCursorDown();
+    posx = 0;
+    posy++;
+  }
+}
+
+void Window::copySelection() {
+  m_selection.clear();
+  if (m_starty==-1 || m_endy == -1)
+    return;
+  int sy = m_starty;
+  int ey = m_endy;
+  if (sy>ey)
+    swap(sy,ey);
+  if (sy==ey)
+    ey++;
+  
+  for (int posy = sy; posy<ey;posy++) {
+    auto s = m_contents[posy];
+    int sx1 = 0;
+    int sx2 = s.size();
+    if (posy == m_starty)
+      sx1 = m_startx;
+    if (posy == m_endy)
+      sx2 = m_endx;
+    if (sx2<sx1)
+      swap(sx1,sx2);
+    m_selection.push_back(s.substr(sx1,sx2-sx1));
+  }
+    
+  
 }
 
 void Window::print() {

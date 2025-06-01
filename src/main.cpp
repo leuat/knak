@@ -31,12 +31,25 @@ int moveCursor(Window* w) {
   int pposy = w->m_posy;
   //nonl();
   cbreak();
-    raw();
+  raw();
   //    keypad(stdscr, TRUE);
     int v = getch();
     //printf("keyballeeeee: %i",v);
-  if (v==ctrl('s'))
-    exit(1);
+  if (v==ctrl('q'))
+    isDone = true;
+  if (v==ctrl('c')) {
+    w->copySelection();
+    return -1;
+  }
+  if (v==ctrl('v')) {
+    w->snap();
+    w->pasteSelection();
+    return -1;
+  }
+  if (v==ctrl('z')) {
+    w->undo();
+    return -1;
+  }
    
   if (v==10) { // enter
 	       // Load file
@@ -50,14 +63,11 @@ int moveCursor(Window* w) {
 
   }
 
-    if (v==59) {
+  if (v==59) { // shift + cursor keys select
       // shift
-      v = getch();
-      v = getch();
-      if (v == 'B') { w->select();w->moveCursorDown();w->select();}
-      if (v == 'A') { w->select(); w->moveCursorUp();w->select(); }
-    if (v == 'C') w->moveCursorRight();
-    if (v == 'D') w->moveCursorLeft();
+    v = getch();
+    v = getch();
+    w->moveCursor(v,true);
     return -1;
     }
 
@@ -72,15 +82,19 @@ int moveCursor(Window* w) {
 	curWindow = editorWindow;
       return -1;
     }
-    if (v == 'B') { w->unselect(); w->moveCursorDown(); }
-    if (v == 'A') { w->unselect(); w->moveCursorUp();}
-    if (v == 'C') { w->unselect(); w->moveCursorRight();}
-    if (v == 'D') { w->unselect(); w->moveCursorLeft();}
-    if (v == 27) isDone = true;
+    w->moveCursor(v,false);
+    if (v==27) {
+      getch();
+      w->clearSelection();
+      return -1;
+      }
+    //    if (v == 27) isDone = true;
     curWindow->constrainCursor();
     return -1;
   }
   //  printf("keyball: %i",v);
+  
+  w->clearSelection();
   curWindow->key(v);
   
   return v;

@@ -15,6 +15,16 @@
 using namespace std;
 
 
+class Snap {
+public:
+  std::vector<std::string> m_contents;
+  int m_posx, m_posy, m_curYpos;
+  Snap(std::vector<std::string>& contents, int posx, int posy, int curYpos):m_contents(contents), m_posx(posx), m_posy(posy), m_curYpos(curYpos) {
+  }
+  
+};
+
+
 class Window {
  public:
   WINDOW* m_window = nullptr;
@@ -23,9 +33,13 @@ class Window {
   int m_curYpos = 0;
   int m_posx = 0;
   int m_posy = 0;
-  std::vector<string> m_contents;
+  std::vector<string> m_contents, m_selection;
   bool m_hasBorders = false;
   int m_starty=-1, m_endy=-1, m_startx=-1, m_endx=-1;
+
+  static const int MAX_UNDO = 1000;
+
+  std::vector<Snap> m_snaps;
 
   std::vector<shared_ptr<Window>> m_children;
   Window* m_parent = nullptr;
@@ -48,15 +62,40 @@ class Window {
   void constrainCursor(int diffy = 0);
 
   void unselect() { m_isSelecting = false; }
+
+  void copySelection();
+  void pasteSelection();
+  void snap();
+  void undo();
+  
   
   void select() {
     if (m_isSelecting == false) {
       m_isSelecting = true;
       m_starty = getYpos();
+      m_startx = m_posx;
     }
-    else
+    else {
       m_endy = getYpos();
+      m_endx = m_posx;
+    }
 
+  }
+
+  void moveCursor(int v, bool is_select) {
+      if (is_select) {
+	if (v == 'B') { select(); moveCursorDown();select();}
+	if (v == 'A') { select(); moveCursorUp();select(); }
+	if (v == 'C') { select(); moveCursorRight();select();}
+	if (v == 'D') { select(); moveCursorLeft();select();}
+      }
+      else {
+	if (v == 'B') { unselect(); moveCursorDown(); }
+	if (v == 'A') { unselect(); moveCursorUp();}
+	if (v == 'C') { unselect(); moveCursorRight();}
+	if (v == 'D') { unselect(); moveCursorLeft();}
+
+      }
   }
   
   void fillLines(int start) {
@@ -143,6 +182,11 @@ class Window {
   void moveCursorUp() {
     m_posy--;
     constrainCursor();
+  }
+
+  void clearSelection() {
+    m_starty = -1;
+    m_endy = -1;
   }
     
 
