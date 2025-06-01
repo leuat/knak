@@ -64,8 +64,7 @@ void buildProject() {
   //  system("make");
   //  execlp("ls", "ls", "-l", NULL);
 
-  stream = popen("make", "r");
-  FILE * stream;
+  auto stream = popen("make -j4", "r");
   const int max_buffer = 256;
   char buffer[max_buffer];
   build->m_contents.clear();
