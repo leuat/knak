@@ -134,11 +134,6 @@ int moveCursor(Window* w) {
     return -1;
   }
 
-  std::string ignoreCtrlKeys = "abcdefghijklmnopqrstuvwzyxABCDEFGHIJKLMNOPQRSTUVXYZ123456789+\\|-.,:_*?=)(/&%¤#§!";
-  for (auto c: ignoreCtrlKeys) {
-    if (v==ctrl(c))
-      return -1;
-  }
 
   
   if (v==10) { // enter
@@ -202,6 +197,16 @@ int moveCursor(Window* w) {
   }
   //  printf("keyball: %i",v);
   // don't clear if backspace
+
+  //  std::string ignoreCtrlKeys = "abcdefghijklmnopqrstuvwzyxABCDEFGHIJKLMNOPQRSTUVXYZ123456789+\\|-.,:_*?=)(/&%¤#§!";
+  std::string ignoreCtrlKeys = "abcdefghiklmnopqrstuvwzyxABCDEFGHIKLNOPQRSTUVXYZ+\\|-.,:_?=)(/&%¤#§!";
+  for (char& key: ignoreCtrlKeys) {
+    if (v==ctrl(key))
+      return -1;
+  }
+  
+
+  
   if (v!=127)
     w->m_doc->clearSelection();
   curWindow->key(v);

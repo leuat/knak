@@ -202,6 +202,7 @@ void Window::printSelection() {
       size = ex-dx - cp;
 
     int pdx = dx;
+    
     // cut lhs
     if (x+dx<hasBorders())
       {
@@ -229,52 +230,6 @@ void Window::printSelection() {
   
 }
 
-/*
-void Window::printSelection() {
-  int cx = m_doc->m_curXpos;
-  int x = hasBorders()-cx;
-  int y = hasBorders();
-  int fy = m_doc->m_starty-m_doc->m_curYpos;
-  int ty = m_doc->m_endy-m_doc->m_curYpos;
-  if (m_doc->m_starty>m_doc->m_endy) swap(fy,ty);
-  int posy = fy+m_doc->m_curYpos;
-  auto f = m_doc->m_contents;
-  y+=fy;
-  wattron(m_window,COLOR_PAIR(Data::COLOR_SELECTION));
-  while (y<m_height-hasBorders() && posy<f.size()) {
-    if (fy<=ty && y>=hasBorders() && y<m_height-hasBorders())
-      {
-	auto s = f[posy];
-	int sx1 = std::max(0-cx,0);
-	int sx2 = std::max(0-cx,(int)s.size());
-	
-	if (posy == m_doc->m_starty)
-	  sx1 = m_doc->m_startx;
-	if (posy == m_doc->m_endy)
-	  sx2 = m_doc->m_endx;
-	if (sx2<sx1)
-	  swap(sx1,sx2);
-	int cap = 0;
-	if (x+sx1<hasBorders()) {
-	  sx1=-x + hasBorders();
-	}
-	if (sx2-sx1>m_width-hasBorders()*2)
-	  sx2 = m_width-hasBorders()*2 +m_doc->m_curXpos;
-	wmove(m_window,y,x+sx1);
-	if (posy>=0 && posy<f.size()) {
-	  string f = s.substr(sx1,sx2-sx1);
-	  if (m_doc->m_curXpos<f.size())
-	    f = f.substr(m_doc->m_curXpos, std::min((int)m_width-hasBorders()*2, (int)f.size()));
-	  
-	  wprintw(m_window, f.c_str());
-	}
-      }
-    posy++;
-    y++;
-    fy++;
-  }
-}
-*/
 
 void Window::print() {
   if (!m_doc)
