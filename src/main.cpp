@@ -188,8 +188,9 @@ int moveCursor(Window* w) {
     return -1;
   }
   //  printf("keyball: %i",v);
-  
-  w->m_doc->clearSelection();
+  // don't clear if backspace
+  if (v!=127)
+    w->m_doc->clearSelection();
   curWindow->key(v);
   
   return v;

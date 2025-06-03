@@ -108,8 +108,19 @@ void Document::key(int k) {
   }
 
   if (k==127) { // backspace
+    //    printf("%i \n", m_starty);
+    if (m_starty!=-1) {
+      eraseSelection();
+      return;
+    }
+    
     if (m_posx<0)
       return;
+
+    if (m_posx == 0 && getYpos()==0)
+      return;
+    
+    
     if (m_posx == 0 && getYpos()!=0) {
       // copy back
       auto s = getCurrentLine();
@@ -169,23 +180,78 @@ void Document::copySelection() {
     return;
   int sy = m_starty;
   int ey = m_endy;
-  if (sy>ey)
-    swap(sy,ey);
-  if (sy==ey)
-    ey++;
+  int sx = m_startx;
+  int ex = m_endx;
   
-  for (int posy = sy; posy<ey;posy++) {
+  if (sy>ey) {
+    swap(sy,ey);
+    swap(sx,ex);
+  }
+  
+  //  if (sy==ey)
+  //    ey++;
+
+  for (int posy = sy; posy<=ey;posy++) {
     auto s = m_contents[posy];
     int sx1 = 0;
     int sx2 = s.size();
-    if (posy == m_starty)
-      sx1 = m_startx;
-    if (posy == m_endy)
-      sx2 = m_endx;
-    if (sx2<sx1)
+    if (posy == sy)
+      sx1 = sx;
+    if (posy == ey)
+      sx2 = ex;
+
+    if (m_starty == m_endy && sx1>sx2) {
       swap(sx1,sx2);
+    }
+    
     m_selection.push_back(s.substr(sx1,sx2-sx1));
   }
-    
-  
+  for (auto s: m_selection) {
+    printf((s+"\n").c_str());
+  }
 }
+
+  void Document::eraseSelection() {
+    if (m_starty==-1 || m_endy == -1)
+      return;
+
+      int sy = m_starty;
+      int ey = m_endy;
+      int sx = m_startx;
+      int ex = m_endx;
+      
+      if (sy>ey) {
+	swap(sy,ey);
+	swap(sx,ex);
+      }
+
+    
+    std::vector<int> eraseLines;
+    for (int posy = sy; posy<=ey;posy++) {
+      auto& s = m_contents[posy];
+      int sx1 = 0;
+      int sx2 = s.size();
+      if (posy == sy)
+	sx1 = sx;
+      if (posy == ey)
+	sx2 = ex;
+      if (sx2<sx1)
+	swap(sx1,sx2);
+
+      s = s.erase(sx1,sx2-sx1);
+      //      if (s=="")
+      //eraseLines.push_back(sy);
+      
+    }
+    for (int posy = ey-1; posy>=sy;posy--) {
+      auto s = m_contents[posy];
+      if (s=="")
+	m_contents.erase(m_contents.begin()+posy);
+      
+    }
+    clearSelection();
+    m_posx = sx + hasBorders();
+    m_posy = sy + hasBorders()-m_curYpos;
+    constrainCursor();
+  
+  }

@@ -104,6 +104,8 @@ public:
     m_starty = -1;
     m_endy = -1;
   }
+
+  void eraseSelection();
     
   void moveCursorRight() {
     m_posx++;

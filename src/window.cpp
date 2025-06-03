@@ -202,27 +202,24 @@ void Window::printSelection() {
       size = ex-dx - cp;
 
     int pdx = dx;
-    // cut rhs
+    // cut lhs
     if (x+dx<hasBorders())
       {
 	dx = -x+hasBorders();
 	size -= cp-sx; 
     }
+    // cut rhs
     if (x+dx+size>m_width)
       {
-	//	exit(1);
-	//	dx = -x+hasBorders();
 	size = (m_width-hasBorders())-(x+dx); 
     }
 
-    // cut lhs
     wmove(m_window,y,x+dx);
     if (posy>=0 && posy<f.size() && posy>=sy && posy<=ey && size>0) {
       std::string s = f[posy];
       if (cp<f.size()) {
 	s = s.substr(m_doc->m_curXpos+dx, std::min((int)m_width-hasBorders()*2, size));
 	wprintw(m_window, s.c_str());
-	
       }
       
     }
