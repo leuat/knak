@@ -163,7 +163,55 @@ void Window::printWindowList(bool showSelection) {
     x+=f[posy].size()-4;
   }
 }
+void Window::printSelection() {
+  if (!m_doc)
+    return;
+  
+  int x = hasBorders();
+  int y = hasBorders();
+  int posy = m_doc->m_curYpos;
+  auto f = m_doc->m_contents;
+  wattron(m_window,COLOR_PAIR(Data::COLOR_SELECTION));
 
+  int sy = m_doc->m_starty;
+  int ey = m_doc->m_endy;
+  int sx = m_doc->m_startx;
+  int ex = m_doc->m_endx;
+  if (sy>ey) {
+    swap(sy,ey);
+    swap(sx,ex);
+  }
+  if (sy==ey && sx>ex)
+    swap(sx,ex);
+
+  int cp = m_doc->m_curXpos;
+  
+  while (y<m_height-hasBorders() && posy<f.size()) {
+    int dx = 0;
+    int size = f[posy].size();
+
+    if (posy==sy)
+      dx += sx - cp;
+    if (posy==ey)
+      size = ex-dx - cp;
+
+    wmove(m_window,y,x+dx);
+    if (posy>=0 && posy<f.size() && posy>=sy && posy<=ey) {
+      std::string s = f[posy];
+      if (cp<size) {
+	s = s.substr(m_doc->m_curXpos+dx, std::min((int)m_width-hasBorders()*2, size));
+	wprintw(m_window, s.c_str());
+	
+      }
+      
+    }
+    posy++;
+    y++;
+  }
+  
+}
+
+/*
 void Window::printSelection() {
   int cx = m_doc->m_curXpos;
   int x = hasBorders()-cx;
@@ -208,7 +256,7 @@ void Window::printSelection() {
     fy++;
   }
 }
-
+*/
 
 void Window::print() {
   if (!m_doc)
