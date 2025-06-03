@@ -73,11 +73,11 @@ public:
     if (m_isSelecting == false) {
       m_isSelecting = true;
       m_starty = getYpos();
-      m_startx = m_posx;
+      m_startx = m_posx + m_curXpos;
     }
     else {
       m_endy = getYpos();
-      m_endx = m_posx;
+      m_endx = m_posx + m_curXpos;
     }
 
   }

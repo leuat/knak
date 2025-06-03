@@ -166,17 +166,22 @@ void Window::printWindowList(bool showSelection) {
 void Window::printSelection() {
   if (!m_doc)
     return;
+
+  
   
   int x = hasBorders();
   int y = hasBorders();
   int posy = m_doc->m_curYpos;
   auto f = m_doc->m_contents;
   wattron(m_window,COLOR_PAIR(Data::COLOR_SELECTION));
-
+  
   int sy = m_doc->m_starty;
   int ey = m_doc->m_endy;
   int sx = m_doc->m_startx;
   int ex = m_doc->m_endx;
+  if (sy==-1 || ey == -1)
+    return;
+  
   if (sy>ey) {
     swap(sy,ey);
     swap(sx,ex);
@@ -192,13 +197,29 @@ void Window::printSelection() {
 
     if (posy==sy)
       dx += sx - cp;
+    
     if (posy==ey)
       size = ex-dx - cp;
 
+    int pdx = dx;
+    // cut rhs
+    if (x+dx<hasBorders())
+      {
+	dx = -x+hasBorders();
+	size -= cp-sx; 
+    }
+    if (x+dx+size>m_width)
+      {
+	//	exit(1);
+	//	dx = -x+hasBorders();
+	size = (m_width-hasBorders())-(x+dx); 
+    }
+
+    // cut lhs
     wmove(m_window,y,x+dx);
-    if (posy>=0 && posy<f.size() && posy>=sy && posy<=ey) {
+    if (posy>=0 && posy<f.size() && posy>=sy && posy<=ey && size>0) {
       std::string s = f[posy];
-      if (cp<size) {
+      if (cp<f.size()) {
 	s = s.substr(m_doc->m_curXpos+dx, std::min((int)m_width-hasBorders()*2, size));
 	wprintw(m_window, s.c_str());
 	
