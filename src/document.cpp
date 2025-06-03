@@ -34,6 +34,14 @@ void Document::loadFile(std::string fn) {
   m_currentFile = fn;
 }
 
+void Document::save() {
+  std::ofstream out(m_currentFile);
+  for (auto s: m_contents) {
+    out << s << std::endl;
+  }
+  
+}
+
 
 void Document::constrainCursor(int diffy) {
   if (m_curYpos<0) {
@@ -206,14 +214,18 @@ void Document::copySelection() {
     
     m_selection.push_back(s.substr(sx1,sx2-sx1));
   }
+  if (m_selection.back()=="")
+    m_selection.erase(m_selection.begin() + m_selection.size()-1);
+  /*
   for (auto s: m_selection) {
     printf((s+"\n").c_str());
-  }
+    }*/
 }
 
   void Document::eraseSelection() {
     if (m_starty==-1 || m_endy == -1)
       return;
+    snap();
 
       int sy = m_starty;
       int ey = m_endy;
@@ -249,9 +261,10 @@ void Document::copySelection() {
 	m_contents.erase(m_contents.begin()+posy);
       
     }
+    
     clearSelection();
-    m_posx = sx + hasBorders();
     m_posy = sy + hasBorders()-m_curYpos;
+    m_posx = sx - m_curXpos;
     constrainCursor();
   
   }

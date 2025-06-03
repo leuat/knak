@@ -73,8 +73,6 @@ void buildProject() {
       if (fgets(buffer, max_buffer, stream) != NULL) build->m_contents.push_back(std::string(buffer));
     pclose(stream);
   }
-
-  
 }
 
 
@@ -96,6 +94,11 @@ int moveCursor(Window* w) {
     w->m_doc->copySelection();
     return -1;
   }
+  if (v==ctrl('x')) {
+    w->m_doc->copySelection();
+    w->m_doc->eraseSelection();
+    return -1;
+  }
   if (v==ctrl('w')) {
     curWindow = tabOrder[0];
     return -1;
@@ -111,9 +114,14 @@ int moveCursor(Window* w) {
   if (v==ctrl('b')) {
     buildProject();
     return -1;
-  }  if (v==ctrl('c')) {
+  }
+  if (v==ctrl('c')) {
     w->m_doc->copySelection();
     return -1;
+  }
+  if (v==ctrl('s')) {
+    if (w->m_type == Window::Editor)
+      w->m_doc->save();
   }
 
   if (v==ctrl('v')) {
@@ -124,6 +132,12 @@ int moveCursor(Window* w) {
   if (v==ctrl('z')) {
     w->m_doc->undo();
     return -1;
+  }
+
+  std::string ignoreCtrlKeys = "abcdefghijklmnopqrstuvwzyxABCDEFGHIJKLMNOPQRSTUVXYZ123456789+\\|-.,:_*?=)(/&%¤#§!";
+  for (auto c: ignoreCtrlKeys) {
+    if (v==ctrl(c))
+      return -1;
   }
 
   
@@ -183,7 +197,6 @@ int moveCursor(Window* w) {
       w->m_doc->clearSelection();
       return -1;
       }
-    //    if (v == 27) isDone = true;
     curWindow->m_doc->constrainCursor();
     return -1;
   }
@@ -247,17 +260,15 @@ void init() {
   build->m_currentFile = "[build]";
   documents.push_back(build);
   windowWindow->m_doc->m_contents.push_back(build->m_currentFile);
-  
-    
-
+ 
 }
 
 int main(int argc, char ** argv)
 {
   init();
-  loadDocument(argv[1]);
   if (argc!=1)
-    fileWindow->m_doc->loadDir(".");
+    loadDocument(argv[1]);
+  fileWindow->m_doc->loadDir(".");
   
   while (!isDone) {
     windowWindow->m_doc->m_currentFile = editorWindow->m_doc->m_currentFile;
@@ -267,7 +278,6 @@ int main(int argc, char ** argv)
       doRefresh = false;
     }
     curWindow->printCursor();
-    //    refresh();
     mainWindow.refresh();
     
     auto key = moveCursor(curWindow.get());

@@ -59,6 +59,8 @@ public:
 
   void loadDir(std::string dn);
 
+  void save();
+
   void unselect() { m_isSelecting = false; }
 
   void fillLines(int start) {
