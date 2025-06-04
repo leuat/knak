@@ -8,6 +8,8 @@
 #include <algorithm>
 #include "window.h"
 #include <unistd.h>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 #define ctrl(x)           ((x) & 0x1f)
@@ -64,7 +66,7 @@ void buildProject() {
   //  system("make");
   //  execlp("ls", "ls", "-l", NULL);
 
-  auto stream = popen("make -j4", "r");
+  auto stream = popen("make -j4 2>&1", "r");
   const int max_buffer = 256;
   char buffer[max_buffer];
   build->m_contents.clear();
@@ -75,7 +77,26 @@ void buildProject() {
   }
 }
 
+void blink() {
+  for (int j=0;j<100;j++) {
+    int i = (1000-j*10)*0.2;
+    init_color(COLOR_BLACK, i,i,i);
+    refresh();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
 
+}
+int kbhit(void)
+{
+    int ch = getch();
+
+    if (ch != ERR) {
+        ungetch(ch);
+        return 1;
+    } else {
+        return 0;
+    }
+}
 int moveCursor(Window* w) {
   // refreshes the screen
   
@@ -83,10 +104,14 @@ int moveCursor(Window* w) {
   int pposy = w->m_doc->m_posy;
   //  nonl();
   cbreak();
-  raw();
+    raw();
+    keypad(stdscr, true);  
   //    keypad(stdscr, TRUE);
+    
   int v = getch();
-  //            printf("key: %i     \n",v);
+    printf("key: %i     \n",v);
+    //    return -1;
+
   if (v==ctrl('q'))
     isDone = true;
   
@@ -120,8 +145,10 @@ int moveCursor(Window* w) {
     return -1;
   }
   if (v==ctrl('s')) {
-    if (w->m_type == Window::Editor)
+    if (w->m_type == Window::Editor) {
       w->m_doc->save();
+      blink();
+    }
   }
 
   if (v==ctrl('v')) {
@@ -135,14 +162,13 @@ int moveCursor(Window* w) {
   }
 
 
-  
-  if (v==10) { // enter
-	       // Load file
+  if (v==KEY_ENTER) { // enter
+          // Load file
     if (curWindow->m_type==Window::FileList) {
       if (Util::isDirectory(fileWindow->m_doc->getCurrentLine()))
-	fileWindow->m_doc->loadDir(fileWindow->m_doc->getCurrentLine());
+   fileWindow->m_doc->loadDir(fileWindow->m_doc->getCurrentLine());
       else
-	loadDocument(fileWindow->m_doc->getCurrentLine());
+   loadDocument(fileWindow->m_doc->getCurrentLine());
       return -1;
     }
     if (curWindow->m_type==Window::Windows) {
@@ -151,42 +177,36 @@ int moveCursor(Window* w) {
     }
 
   }
-
-  if (v==59) { // shift + cursor keys select
-      // shift
-    auto v1 = getch();
-    auto v2 = getch();
-    if (v1==50) // shift 
-      w->m_doc->moveCursor(v2,true);
-    if (v1==53) {// ctrl
-      windowWindow->m_doc->moveCursor(v2,true);
-      setDocument(windowWindow->m_doc->m_contents[windowWindow->m_doc->m_posy]);
-      
-    }
+  if (curWindow->m_doc->moveCursor(v))
     return -1;
-    }
 
+  if (v==534) {
+    windowWindow->m_doc->moveCursor(337);
+    setDocument(windowWindow->m_doc->m_contents[windowWindow->m_doc->m_posy]);
+    return -1;
+  }
+  if (v==575) {
+    windowWindow->m_doc->moveCursor(336);
+    setDocument(windowWindow->m_doc->m_contents[windowWindow->m_doc->m_posy]);
+    return -1;
+  }
+  if (v==338) {
+    w->m_doc->pageDown();
+    return -1;
+  }
+  if (v==339) {
+    w->m_doc->pageUp();
+    return -1;
+  }
+
+  /*  
   if (v==27) {
     int v1 = getch();
     int v2 = getch();
     //    printf("key: %i %i %i    \n",v,v1,v2);
     //             printf("key27: %i\n",v);
-    /*   if (v2==90)  { //Shift+TAB
-      curTab = (curTab+1)%tabOrder.size();
-      curWindow = tabOrder[curTab];
-      return -1;
-      }*/
-    if (v2 == 54) { // page down
-      w->m_doc->pageDown();
-      v1 = getch();
-      return -1;
-    }
-    if (v2 == 53) { // page up
-      w->m_doc->pageUp();
-      v1 = getch();
-      return -1;
-    }
-    w->m_doc->moveCursor(v2,false);
+    //w->m_doc->moveCursor(v2,false);
+    
     if (v2==27) {
       getch();
       w->m_doc->clearSelection();
@@ -195,16 +215,18 @@ int moveCursor(Window* w) {
     curWindow->m_doc->constrainCursor();
     return -1;
   }
+  */
   //  printf("keyball: %i",v);
   // don't clear if backspace
 
   //  std::string ignoreCtrlKeys = "abcdefghijklmnopqrstuvwzyxABCDEFGHIJKLMNOPQRSTUVXYZ123456789+\\|-.,:_*?=)(/&%¤#§!";
-  std::string ignoreCtrlKeys = "abcdefghiklmnopqrstuvwzyxABCDEFGHIKLNOPQRSTUVXYZ+\\|-.,:_?=)(/&%¤#§!";
+  //  std::string ignoreCtrlKeys = "abcdefghiklmnopqrsuvwzyxABCDEFGHIKLNOPQRSUVXYZ+\\|-.,:_?=)(/&%¤#§!";
+  /*  std::string ignoreCtrlKeys = "";
   for (char& key: ignoreCtrlKeys) {
     if (v==ctrl(key))
       return -1;
   }
-  
+  */
 
   
   if (v!=127)

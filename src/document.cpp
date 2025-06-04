@@ -97,7 +97,7 @@ void Document::constrainCursor(int diffy) {
 void Document::key(int k) {
   if (m_isLocked)
     return;
-  if (k=='\t') {
+  if (k==9) { // tab
     m_contents[getYpos()].insert(m_posx,Data::s_tab);
     m_posx+=Data::s_tab.size();
     return;
@@ -105,7 +105,7 @@ void Document::key(int k) {
   
 
   
-  if (k==10) { // enter
+  if (k==KEY_ENTER) { // enter
       auto bottom = getCurrentLine().substr(m_posx, getCurrentLine().size());
       auto top = getCurrentLine().substr(0, m_posx);
       m_contents[getYpos()] = top;
@@ -115,8 +115,7 @@ void Document::key(int k) {
       return;
   }
 
-  if (k==127) { // backspace
-    //    printf("%i \n", m_starty);
+  if (k==KEY_BACKSPACE) { // backspace
     if (m_starty!=-1) {
       eraseSelection();
       return;

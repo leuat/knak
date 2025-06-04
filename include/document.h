@@ -150,20 +150,18 @@ public:
     constrainCursor();
   }
 
-  void moveCursor(int v, bool is_select) {
-      if (is_select) {
-	if (v == 'B') { select(); moveCursorDown();select();}
-	if (v == 'A') { select(); moveCursorUp();select(); }
-	if (v == 'C') { select(); moveCursorRight();select();}
-	if (v == 'D') { select(); moveCursorLeft();select();}
-      }
-      else {
-	if (v == 'B') { unselect(); moveCursorDown(); }
-	if (v == 'A') { unselect(); moveCursorUp();}
-	if (v == 'C') { unselect(); moveCursorRight();}
-	if (v == 'D') { unselect(); moveCursorLeft();}
+  bool moveCursor(int v) {
+    if (v == 336) { select(); moveCursorDown();select(); return true;}
+    if (v == 337) { select(); moveCursorUp();select(); return true;}
+    if (v == 402) { select(); moveCursorRight();select();return true;}
+    if (v == 393) { select(); moveCursorLeft();select();return true;}
+    if (v == KEY_DOWN) { unselect(); moveCursorDown();return true;}
+    if (v == KEY_UP) { unselect(); moveCursorUp();return true;}
+    if (v == KEY_RIGHT) { unselect(); moveCursorRight();return true;}
+    if (v == KEY_LEFT) { unselect(); moveCursorLeft();return true;}
+    
+    return false;
 
-      }
   }
 
 };
