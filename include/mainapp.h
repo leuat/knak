@@ -34,6 +34,7 @@ class MainApp {
 
   void initColorValues();
   bool setDocument(std::string fn);
+  void closeDocument(std::string fn);
   void loadDocument(std::string fn);
   void buildProject();
   void blink();
@@ -41,6 +42,7 @@ class MainApp {
   void initColors();
   void init();
   void update();
+  void execute();
   
 
 

@@ -3,10 +3,24 @@
 
 void Document::loadDir(std::string dn) {
   m_contents.clear();
+  
+  if (dn=="../") {
+    if (Data::d.current_path.size()==1)
+      return;
+    Data::d.current_path.erase(Data::d.current_path.begin() + Data::d.current_path.size()-1);
+  }
+  else
+      Data::d.current_path.push_back(dn);
+
+  
   m_contents.push_back("../");
-  for (const auto & entry : std::filesystem::directory_iterator(dn)) {
-    auto s = entry.path();
-    //    s = Util::replaceAll(s,"./","");
+  for (const auto & entry : std::filesystem::directory_iterator(Data::d.getCurrentPath())) {
+    std::string s = entry.path();
+    //     s = Util::replaceAll(s,".//","");
+    //  s = Util::replaceAll(s,"../","");
+     s = Util::replaceAll(s,"./","");
+     if (s.ends_with("~"))
+	 continue;
     m_contents.push_back(s);
   }
   m_currentFile = dn;
@@ -48,16 +62,19 @@ void Document::constrainCursor(int diffy) {
     m_curYpos = 0;
     m_posy = 0;
   }
+  /*    
   if (m_curYpos>=m_contents.size()-m_height)
-    m_curYpos = m_contents.size()-m_height-1;
-  if (m_posy==m_height-hasBorders()) {
+    m_curYpos = m_contents.size()-m_height-1 ;
+  */
+    if (m_posy==m_height-hasBorders()) {
     m_posy -=1;
     m_curYpos++;
     
-  }
+    }
+  
   if (m_curYpos+m_posy>=m_contents.size()) {
     m_posy = m_contents.size()-m_curYpos;
-  }
+    }
   if (m_posy<hasBorders()) {
     m_posy +=1;
     if (m_curYpos!=0)
@@ -97,6 +114,7 @@ void Document::constrainCursor(int diffy) {
 void Document::key(int k) {
   if (m_isLocked)
     return;
+  
   if (k==9) { // tab
     m_contents[getYpos()].insert(m_posx,Data::s_tab);
     m_posx+=Data::s_tab.size();
@@ -105,7 +123,7 @@ void Document::key(int k) {
   
 
   
-  if (k==KEY_ENTER) { // enter
+  if (k==10) { // enter
       auto bottom = getCurrentLine().substr(m_posx, getCurrentLine().size());
       auto top = getCurrentLine().substr(0, m_posx);
       m_contents[getYpos()] = top;

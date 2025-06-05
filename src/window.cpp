@@ -159,8 +159,8 @@ void Window::printWindowList(bool showSelection) {
     
     wmove(m_window,y,x);
     printLine(f[posy]);
+    x+=f[posy].size()+2;
     posy++;
-    x+=f[posy].size()-4;
   }
 }
 void Window::printSelection() {

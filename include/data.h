@@ -21,13 +21,27 @@ class Data {
   static const int COLOR_SYMBOL = 6;
   static const int COLOR_CURSOR = 7;
   static const int COLOR_SELECTION = 8;
+
+  std::string buildWindowName = "[build]";
+  std::string project_path;
+  std::vector<std::string> current_path;
+  std::string build_command, execute_command, execute_parameters;
+
+
+  std::string getCurrentPath() {
+    std::string r = "";
+    for (auto& p : current_path)
+      r+=p+"/";
+
+    return r;
+  }
   
   inline static const std::string s_tab = "   ";
 
   static void Error(std::string msg) {
     endwin();
     printf("Fatal error: %s\n",msg.c_str());
-    exit(1);
+    Data::quit();
   }
 
   void setColor(int color, std::string inival) {
@@ -48,7 +62,17 @@ class Data {
     setColor(COLOR_BLUE,ini.get("CurrentSettings").get("color_type"));
     setColor(COLOR_YELLOW,ini.get("CurrentSettings").get("color_selection"));
     setColor(COLOR_BLACK,ini.get("CurrentSettings").get("color_background"));
+
+    build_command = ini.get("Project").get("build_command");
+    execute_command = ini.get("Project").get("execute_command");
+    execute_parameters = ini.get("Project").get("execute_parameters");
  
+  }
+
+  static void quit() {
+      endwin();
+      exit(0);
+
   }
   
   

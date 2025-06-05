@@ -1,5 +1,5 @@
 #include "mainapp.h"
-
+#include <algorithm>
 
 void MainApp::initColorValues() {
   init_color(COLOR_GREEN, 0, 750, 250);
@@ -7,6 +7,20 @@ void MainApp::initColorValues() {
   init_color(COLOR_BLUE, 100, 300, 1000);
   init_color(COLOR_BLACK, 30, 50, 100);
   init_color(COLOR_WHITE, 500, 500, 600);
+}
+
+void MainApp::closeDocument(std::string fn) {
+  if (fn==Data::d.buildWindowName)
+    return;
+  for (int i=0;i<documents.size();i++) {
+    if (documents[i]->m_currentFile==fn) {
+      documents.erase(documents.begin()+i);
+     windowWindow->m_doc->moveCursor(337);
+     setDocument(windowWindow->m_doc->m_contents[windowWindow->m_doc->m_posy]);
+     windowWindow->m_doc->m_contents.erase(std::remove(windowWindow->m_doc->m_contents.begin(), windowWindow->m_doc->m_contents.end(), fn), windowWindow->m_doc->m_contents.end());
+      return;
+    }
+  }
 }
 
 bool MainApp::setDocument(std::string fn) {
@@ -18,7 +32,6 @@ bool MainApp::setDocument(std::string fn) {
       
   }
   return false;
-    
 }
 
 
@@ -34,10 +47,9 @@ void MainApp::loadDocument(std::string fn) {
 }
 
 void MainApp::buildProject() {
-  //  system("make");
-  //  execlp("ls", "ls", "-l", NULL);
 
-  auto stream = popen("make -j4 2>&1", "r");
+  setDocument(Data::d.buildWindowName);
+  auto stream = popen((Data::d.build_command+std::string(" 2>&1")).c_str(), "r");
   const int max_buffer = 256;
   char buffer[max_buffer];
   build->m_contents.clear();
@@ -45,6 +57,14 @@ void MainApp::buildProject() {
     while (!feof(stream))
       if (fgets(buffer, max_buffer, stream) != NULL) build->m_contents.push_back(std::string(buffer));
     pclose(stream);
+  }
+}
+
+void MainApp::execute() {
+  if (std::filesystem::exists(Data::d.execute_command)) {
+    system((Data::d.execute_command + " " + Data::d.execute_parameters).c_str());
+    if (Data::d.execute_command == "./knak")
+      Data::quit();
   }
 }
 
@@ -68,7 +88,7 @@ int MainApp::moveCursor(Window* w) {
   keypad(stdscr, true);  
     
   int v = getch();
-    printf("key: %i     \n",v);
+  //      printf("key: %i     \n",v);
 
   if (v==ctrl('q'))
     isDone = true;
@@ -82,16 +102,27 @@ int MainApp::moveCursor(Window* w) {
     w->m_doc->eraseSelection();
     return -1;
   }
-  if (v==ctrl('w')) {
+  /*
+  if (v==ctrl('y')) {
     curWindow = tabOrder[0];
     return -1;
   }
-  if (v==ctrl('e')) {
+  if (v==ctrl('t')) {
     curWindow = tabOrder[1];
+    return -1;
+    }*/
+  if (v==353) {
+    curTab=(curTab+1)&1;
+    curWindow = tabOrder[curTab];
     return -1;
   }
   if (v==ctrl('r')) {
-    curWindow = tabOrder[2];
+    //    curWindow = tabOrder[2];
+    execute();
+    return -1;
+  }
+  if (v==ctrl('w')) {
+    closeDocument(editorWindow->m_doc->m_currentFile);
     return -1;
   }
   if (v==ctrl('b')) {
@@ -121,13 +152,13 @@ int MainApp::moveCursor(Window* w) {
   }
 
 
-  if (v==KEY_ENTER) { // enter
-          // Load file
+  if (v==10) { // enter
+    // Load file
     if (curWindow->m_type==Window::FileList) {
       if (Util::isDirectory(fileWindow->m_doc->getCurrentLine()))
-   fileWindow->m_doc->loadDir(fileWindow->m_doc->getCurrentLine());
+	fileWindow->m_doc->loadDir(fileWindow->m_doc->getCurrentLine());
       else
-   loadDocument(fileWindow->m_doc->getCurrentLine());
+	loadDocument(fileWindow->m_doc->getCurrentLine());
       return -1;
     }
     if (curWindow->m_type==Window::Windows) {
@@ -217,6 +248,8 @@ void MainApp::init() {
   float fileSplit = 0.2;
   float mainSplitY = 0.1;
   float lineSplit = 0.07;
+
+  Data::d.project_path = std::filesystem::current_path();
   
   auto mainw = mainWindow.addChild(Window::Empty, fileSplit, mainSplitY, 1-fileSplit, 1-mainSplitY*2);
   fileWindow = mainWindow.addChild(Window::FileList, 0, mainSplitY, fileSplit, 1-mainSplitY);
@@ -243,7 +276,8 @@ void MainApp::init() {
   tabOrder.push_back(windowWindow);
 
   build = make_shared<Document>();
-  build->m_currentFile = "[build]";
+  build->m_currentFile = Data::d.buildWindowName;
+  build->m_isLocked = true;
   documents.push_back(build);
   windowWindow->m_doc->m_contents.push_back(build->m_currentFile);
  
